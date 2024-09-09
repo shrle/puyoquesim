@@ -1,0 +1,210 @@
+<template>
+  <div class="field">
+    <InputImage @load-image="loadImage" ref="InputImage" hidden></InputImage>
+
+    <!--
+      <div v-if="!onload">
+        データ読込中
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      -->
+
+    <FieldRangeSelector
+      :canvasImage="image"
+      @prev-step="prevStep"
+      @set-extract-color-map="setExtractColorMap"
+      v-show="step === 1"
+      ref="FieldRangeSelector"
+    ></FieldRangeSelector>
+
+    <PuyoColorPicker
+      @prev-step="prevStep"
+      @set-color-for-puyo="setColorForPuyos"
+      :extractionColorMap="extractionColorMap"
+      v-show="step === 2"
+      ref="PuyoColorPicker"
+    ></PuyoColorPicker>
+
+    <NextRangeSelector
+      @prev-step="prevStep"
+      @set-extract-color-nextpuyo="setExtractColorNextPuyos"
+      v-show="step === 3"
+      ref="NextRangeSelector"
+    ></NextRangeSelector>
+
+    <NextPuyoColorPicker
+      @prev-step="prevStep"
+      @set-color-for-nextpuyos="setColorForNextPuyos"
+      :extractionColorNextPuyos="extractionColorNextPuyos"
+      v-show="step === 4"
+      ref="NextPuyoColorPicker"
+    ></NextPuyoColorPicker>
+  </div>
+</template>
+
+<script>
+import convert from "color-convert";
+
+import InputImage from "@/components/InputImage.vue";
+import FieldRangeSelector from "@/components/FieldRangeSelector.vue";
+import PuyoColorPicker from "@/components/PuyoColorPicker.vue";
+import NextRangeSelector from "@/components/NextRangeSelector.vue";
+import NextPuyoColorPicker from "@/components/NextPuyoColorPicker.vue";
+
+const fieldWidth = 8;
+const fieldHeight = 6;
+
+export default {
+  name: "ParseScreenShot",
+  components: {
+    InputImage,
+    FieldRangeSelector,
+    PuyoColorPicker,
+    NextRangeSelector,
+    NextPuyoColorPicker,
+  },
+  mounted() {},
+  data() {
+    return {
+      step: 0,
+      image: null,
+      /** SSのフィールドから抽出したの各色 */
+      extractionColorMap: [],
+      /** SSのネクストぷよから抽出した各色 */
+      extractionColorNextPuyos: [],
+      /** フィールドの場合のぷよ番号ごとに関連付けられたカラーコード */
+      colorForPuyos: [],
+      /** ネクストぷよの場合のぷよ番号ごとに関連付けられたカラーコード */
+      colorForNextPuyos: [],
+
+      puyoMap: null,
+      nextPuyos: null,
+
+      onload: false,
+    };
+  },
+  watch: {
+    step() {
+      if (this.step === 0) {
+        document.exitFullscreen();
+      } else if (this.step === 1) {
+        this.$refs.FieldRangeSelector.active();
+      } else if (this.step === 2) {
+        this.$refs.PuyoColorPicker.active();
+      } else if (this.step === 3) {
+        this.$refs.NextRangeSelector.active();
+      } else if (this.step === 4) {
+        this.$refs.NextPuyoColorPicker.active();
+      } else if (this.step === 5) {
+        document.exitFullscreen();
+        this.convertColorMapToPuyoMap();
+        this.convertColorNextPuyosToNextPuyos();
+        this.$emit("set-puyo-map", this.puyoMap, this.nextPuyos);
+      }
+    },
+  },
+  methods: {
+    selectFile() {
+      this.$refs.InputImage.selectFile();
+    },
+    loadImage: function (image) {
+      this.image = image;
+      this.step = 1;
+    },
+    setExtractColorMap: function (map) {
+      this.extractionColorMap = map;
+      this.nextStep();
+    },
+    setExtractColorNextPuyos: function (map) {
+      this.extractionColorNextPuyos = map;
+      this.nextStep();
+    },
+    setColorForPuyos(colors) {
+      this.colorForPuyos = colors;
+      this.nextStep();
+    },
+    setColorForNextPuyos(colors) {
+      this.colorForNextPuyos = colors;
+      this.nextStep();
+    },
+    prevStep() {
+      if (this.step === 0) return;
+      this.step--;
+    },
+    nextStep() {
+      this.step++;
+    },
+    isNearColor: function (colorCode1, colorCode2) {
+      // HSV値をそれぞれ取得
+      const hsv1 = convert.hex.hsv(colorCode1);
+      const hsv2 = convert.hex.hsv(colorCode2);
+
+      // 色相の差を計算
+      const hueDiff = Math.min(
+        Math.abs(hsv1[0] - hsv2[0]),
+        360 - Math.abs(hsv1[0] - hsv2[0])
+      );
+
+      // 彩度の差を計算
+      const saturationDiff = Math.abs(hsv1[1] - hsv2[1]);
+
+      // 明度の差を計算
+      const valueDiff = Math.abs(hsv1[2] - hsv2[2]);
+
+      // 各差の閾値を設定
+      const hueThreshold = 10;
+      const saturationThreshold = 20;
+      const valueThreshold = 30;
+
+      // すべての差が閾値以下であれば、近い色と判定
+      return (
+        hueDiff <= hueThreshold &&
+        saturationDiff <= saturationThreshold &&
+        valueDiff <= valueThreshold
+      );
+    },
+    /**
+     * 指定色がぷよの色に近ければそのぷよ番号を返す
+     * @param {Number} colorCode
+     * @param {Number[]} puyosToColorCodes
+     *
+     * @returns {Number} puyo index
+     */
+    colorCodeToPuyo(colorCode, puyosToColorCodes) {
+      for (let i = 0; i < puyosToColorCodes.length; i++) {
+        const cc = puyosToColorCodes[i];
+        if (this.isNearColor(colorCode, cc)) return i;
+      }
+      return -1;
+    },
+
+    convertColorMapToPuyoMap() {
+      let map = [];
+      for (let y = 0; y < fieldHeight; y++) {
+        map[y] = [];
+        for (let x = 0; x < fieldWidth; x++) {
+          map[y][x] = this.colorCodeToPuyo(
+            this.extractionColorMap[y][x],
+            this.colorForPuyos
+          );
+        }
+      }
+      this.puyoMap = map;
+    },
+    convertColorNextPuyosToNextPuyos() {
+      this.nextPuyos = [];
+      for (let x = 0; x < fieldWidth; x++) {
+        this.nextPuyos[x] = this.colorCodeToPuyo(
+          this.extractionColorNextPuyos[x],
+          this.colorForNextPuyos
+        );
+      }
+    },
+  },
+};
+</script>
+
+<style scoped></style>
