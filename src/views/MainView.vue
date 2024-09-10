@@ -343,7 +343,7 @@ export default {
       if (this.history.length === 0) return;
       let history = this.history[this.historyIndex];
       this.field.setMapPuyo(history.map);
-      this.field.setNextColors(history.lastNextPuyos);
+      this.field.setNexts(history.lastNextPuyos);
       this.selectRoute = history.selectRoute.clone();
       this.canvas.setRoute(this.selectRoute);
       this.replay = [];

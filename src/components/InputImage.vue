@@ -6,6 +6,11 @@
       accept="image/*"
       ref="preview"
       @change="loadImage"
+      @click="
+        (e) => {
+          e.target.value = '';
+        }
+      "
       hidden
     />
     <button class="text-button" @click="selectFile">ファイルを選択</button>
