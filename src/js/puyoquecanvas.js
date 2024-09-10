@@ -96,7 +96,7 @@ export default class PuyoqueCanvas {
 
     this.dropSpeed = 5;
     this.chainWait = 2;
-    await PIXI.Assets.load("/img/puyos.json").then(() => {
+    await PIXI.Assets.load("./img/puyos.json").then(() => {
       this.onAssetsLoaded();
     });
   }
