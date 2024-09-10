@@ -12,7 +12,6 @@
  * @param {DragCallback} callbacks.end ドラッグ終了時に呼び出される関数
  */
 function addDrag(sprite, callbacks = {}) {
-  console.dir(callbacks);
   sprite.eventMode = "static";
   sprite.cursor = "pointer";
 

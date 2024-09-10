@@ -1,6 +1,5 @@
 /* eslint-disable */
 import * as PIXI from "pixi.js";
-import { Loader } from "@pixi/loaders";
 import PuyoqueStd from "@/js/puyoquestd.js";
 import Point from "@/js/point.js";
 import Route from "@/js/route.js";
@@ -226,12 +225,7 @@ export default class PuyoqueCanvas {
           sprite.width,
           sprite.height
         );
-        console.dir({
-          x: sprite.x,
-          y: sprite.y,
-          w: sprite.width,
-          h: sprite.height,
-        });
+
         this.nextPuyoSprites.push(sprite);
         this.puyoContainer.addChild(sprite);
       }
@@ -357,7 +351,7 @@ export default class PuyoqueCanvas {
 
   editPaintNextPuyo(cursorPoint) {
     let x = this.toNextPuyoPoint(cursorPoint.x, cursorPoint.y);
-    console.dir(x);
+
     if (x === -1) return;
     if (this.editPaintColor === 999) {
       this.field.deleteNext(x);

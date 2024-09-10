@@ -56,12 +56,6 @@ const setImage = (image) => {
   sp.scale.x = spScale;
   sp.scale.y = spScale;
   frameSizeAdjusted = true;
-
-  console.log("captureContainer size");
-  console.dir({
-    width: captureContainer.width,
-    height: captureContainer.height,
-  });
 };
 
 /**
@@ -85,8 +79,6 @@ const imageRGBDataSaver = () => {
     imageRGBData = app.renderer.extract.pixels(captureContainer);
 
     imageRGBDataSaveFlag = false;
-
-    console.log(imageRGBData.length);
   });
 };
 

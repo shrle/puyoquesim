@@ -211,8 +211,8 @@
 </template>
 
 <script>
-import PuyoqueStd from "../js/puyoquestd.js";
-import PuyoqueCanvas from "../js/puyoquecanvas.js";
+import PuyoqueStd from "@/js/puyoquestd.js";
+import PuyoqueCanvas from "@/js/puyoquecanvas.js";
 import ParseScreenShot from "@/components/ParseScreenShot.vue";
 class History {
   constructor(map, lastNextPuyos, selectRoute, colorMag, chainNum) {
@@ -234,9 +234,6 @@ export default {
       const scale = screenWidth / 80;
       this.canvasHeight = 59 * scale;
     }
-    console.dir(window.screen.availWidth);
-    console.dir(this.canvasWidth);
-    console.dir(this.canvasHeight);
 
     this.field = PuyoqueStd.createField(this.fieldWidth, this.fieldHeight);
     this.field.setMapColor(this.map);
@@ -331,8 +328,6 @@ export default {
       this.$refs.ParseScreenShot.selectFile();
     },
     setPuyoMap(map, nextPuyos) {
-      console.dir(map);
-      console.dir(nextPuyos);
       this.field.setMapColor(map);
       this.field.setNextColors(nextPuyos);
     },

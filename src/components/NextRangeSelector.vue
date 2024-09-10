@@ -230,7 +230,6 @@ export default {
       const app = getPixiApp();
       const canvas = app.view;
       if (canvas.parentNode) {
-        console.log("remove canvas");
         canvas.parentNode.removeChild(canvas);
       }
     },

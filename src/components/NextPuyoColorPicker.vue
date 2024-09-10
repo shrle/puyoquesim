@@ -76,12 +76,7 @@ export default {
       pickedPuyoIndex: 0,
     };
   },
-  watch: {
-    extractionColorNextPuyos() {
-      console.log("watch extractionColorNextPuyos");
-      console.dir(this.extractionColorNextPuyos);
-    },
-  },
+  watch: {},
   methods: {
     clamp(x) {
       x = x < 0 ? 0 : x;
