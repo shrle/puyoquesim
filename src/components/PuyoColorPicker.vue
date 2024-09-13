@@ -58,7 +58,7 @@
                 class="puyo-img"
                 @click="pickPuyo(color - 1 + 9)"
               />
-              <img src="/img/plus.svg" class="puyo-plus" />
+              <img src="@/assets/plus.svg" class="puyo-plus" />
             </div>
           </template>
         </section>
