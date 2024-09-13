@@ -77,6 +77,7 @@ export default {
       extractionColorNextPuyos: [],
       /** フィールドの場合のぷよ番号ごとに関連付けられたカラーコード */
       colorForPuyos: [],
+      colorForPlusPuyos: [],
       /** ネクストぷよの場合のぷよ番号ごとに関連付けられたカラーコード */
       colorForNextPuyos: [],
 
@@ -122,8 +123,9 @@ export default {
       this.extractionColorNextPuyos = map;
       this.nextStep();
     },
-    setColorForPuyos(colors) {
-      this.colorForPuyos = colors;
+    setColorForPuyos(colorForPuyos, colorForPlusPuyos) {
+      this.colorForPuyos = colorForPuyos;
+      this.colorForPlusPuyos = colorForPlusPuyos;
       this.nextStep();
     },
     setColorForNextPuyos(colors) {
@@ -171,7 +173,7 @@ export default {
      * @param {Number} colorCode
      * @param {Number[]} puyosToColorCodes
      *
-     * @returns {Number} puyo index
+     * @returns {Number} puyo index , not found: -1
      */
     colorCodeToPuyo(colorCode, puyosToColorCodes) {
       for (let i = 0; i < puyosToColorCodes.length; i++) {
@@ -181,15 +183,39 @@ export default {
       return -1;
     },
 
+    /**
+     * 指定色がプラスぷよの色に近ければそのぷよ番号を返す
+     * @param {Number} colorCode
+     * @param {Number[]} puyosToColorCodes
+     *
+     * @returns {Number} puyo index
+     */
+    colorCodeToPlusPuyo(colorCode, puyosToColorCodes) {
+      for (let i = 0; i < puyosToColorCodes.length; i++) {
+        const cc = puyosToColorCodes[i];
+        if (this.isNearColor(colorCode, cc)) return i;
+      }
+      return -1;
+    },
+
     convertColorMapToPuyoMap() {
+      console.dir(this.colorForPuyos);
+      console.dir(this.colorForPlusPuyos);
       let map = [];
       for (let y = 0; y < fieldHeight; y++) {
         map[y] = [];
         for (let x = 0; x < fieldWidth; x++) {
-          map[y][x] = this.colorCodeToPuyo(
+          let color = this.colorCodeToPuyo(
             this.extractionColorMap[y][x],
             this.colorForPuyos
           );
+          if (color === -1) {
+            color = this.colorCodeToPuyo(
+              this.extractionColorMap[y][x],
+              this.colorForPlusPuyos
+            );
+          }
+          map[y][x] = color;
         }
       }
       this.puyoMap = map;
