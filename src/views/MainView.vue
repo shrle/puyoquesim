@@ -8,7 +8,7 @@
           :class="colorClassName[index]"
           :key="index"
         >
-          {{ Math.floor(mag * 10) / 10 }}
+          {{ Math.round(mag * 100) / 100 }}
         </div>
       </article>
 
@@ -211,7 +211,7 @@
 </template>
 
 <script>
-import PuyoqueStd from "@/js/puyoquestd.js";
+import { PuyoqueStd } from "@/js/puyoquestd.js";
 import PuyoqueCanvas from "@/js/puyoquecanvas.js";
 import ParseScreenShot from "@/components/ParseScreenShot.vue";
 class History {
@@ -238,6 +238,7 @@ export default {
     this.field = PuyoqueStd.createField(this.fieldWidth, this.fieldHeight);
     this.field.setMapColor(this.map);
     this.field.setNextColors(this.nextPuyos);
+    this.field.output();
     this.canvas = new PuyoqueCanvas();
     await this.canvas.init(
       "#cv",
@@ -327,9 +328,12 @@ export default {
     selectFile() {
       this.$refs.ParseScreenShot.selectFile();
     },
-    setPuyoMap(map, nextPuyos) {
-      this.field.setMapColor(map);
-      this.field.setNextColors(nextPuyos);
+    setPuyoMap(field) {
+      const nextPuyos = field.cloneNextPuyos();
+      const map = field.cloneMap();
+      this.field.setNextPuyos(nextPuyos);
+      this.field.setMapPuyo(map);
+      this.field.output();
     },
     getSelectRoute: function (selectRoute) {
       this.selectRoute = selectRoute;
@@ -343,7 +347,7 @@ export default {
       if (this.history.length === 0) return;
       let history = this.history[this.historyIndex];
       this.field.setMapPuyo(history.map);
-      this.field.setNexts(history.lastNextPuyos);
+      this.field.setNextPuyos(history.lastNextPuyos);
       this.selectRoute = history.selectRoute.clone();
       this.canvas.setRoute(this.selectRoute);
       this.replay = [];
@@ -355,7 +359,7 @@ export default {
       this.stopRecordingHistory = true;
       let history = this.history[this.historyIndex];
       this.field.setMapPuyo(history.map);
-      this.field.setNexts(history.lastNextPuyos);
+      this.field.setNextPuyos(history.lastNextPuyos);
       this.selectRoute = history.selectRoute.clone();
       this.canvas.setRoute(this.selectRoute);
       // this.canvas.allVisible();
@@ -370,12 +374,12 @@ export default {
 
     chainStart: function (selectRoute) {
       this.colorMag = [0, 0, 0, 0, 0, 0];
-      this.lastMap = this.field.mapClone();
-      this.lastNextPuyos = this.field.nextsClone();
+      this.lastMap = this.field.cloneMap();
+      this.lastNextPuyos = this.field.cloneNextPuyos();
       this.replay = [];
       this.replay.push({
-        map: this.field.mapClone(),
-        nexts: this.field.nextsClone(),
+        map: this.field.cloneMap(),
+        nexts: this.field.cloneNextPuyos(),
       });
       this.selectRoute = selectRoute.clone();
 
@@ -384,16 +388,16 @@ export default {
 
     chain: function () {
       this.replay.push({
-        map: this.field.mapClone(),
-        nexts: this.field.nextsClone(),
+        map: this.field.cloneMap(),
+        nexts: this.field.cloneNextPuyos(),
       });
     },
 
     chainEnd: function (chainNum) {
       this.chainNum = chainNum;
       this.replay.push({
-        map: this.field.mapClone(),
-        nexts: this.field.nextsClone(),
+        map: this.field.cloneMap(),
+        nexts: this.field.cloneNextPuyos(),
       });
       let wild = this.colorMag.reduce((sum, element) => sum + element, 0);
       let wildNum = 5;
@@ -453,7 +457,7 @@ export default {
       if (this.history.length === 0) return;
       let history = this.history[0];
       this.field.setMapPuyo(history.map);
-      this.field.setNexts(history.lastNextPuyos);
+      this.field.setNextPuyos(history.lastNextPuyos);
       this.selectRoute = [];
       this.canvas.resetRoute();
       this.replay = [];
@@ -462,7 +466,7 @@ export default {
 
     showReplay: function () {
       this.field.setMapPuyo(this.replay[this.replayIndex].map);
-      this.field.setNexts(this.replay[this.replayIndex].nexts);
+      this.field.setNextPuyos(this.replay[this.replayIndex].nexts);
       // this.canvas.allVisible();
       if (this.replayIndex === 0) {
         this.canvas.setRoute(this.selectRoute);

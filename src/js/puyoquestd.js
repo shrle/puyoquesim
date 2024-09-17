@@ -3,13 +3,20 @@ import Queue from "./queue.js";
 import codeToPoint from "./code-to-point.js";
 
 class Puyo {
-  constructor(color, chance) {
+  /**
+   * ぷよの情報
+   * @param {PuyoqueStd.puyoColor} color
+   * @param {boolean} chance
+   * @param {boolean} plus
+   */
+  constructor(color, chance, plus) {
     this.color = color;
     this.chance = chance;
+    this.plus = plus;
   }
 
   clone() {
-    return new Puyo(this.color, this.chance);
+    return new Puyo(this.color, this.chance, this.plus);
   }
 }
 
@@ -20,18 +27,20 @@ class FloatingPuyo {
    * @param {number} y
    * @param {PuyoqueStd.puyoColor} color
    * @param {boolean} chance
+   * @param {boolean} plus
    * @param {number} dropStep 落下する段数
    */
-  constructor(x, y, color, chance, dropStep) {
+  constructor(x, y, color, chance, plus, dropStep) {
     this.x = x;
     this.y = y;
     this.color = color;
     this.chance = chance;
+    this.plus = plus;
     this.dropStep = dropStep;
   }
 }
 
-export default class PuyoqueStd {
+class PuyoqueStd {
   constructor() {}
 
   static puyoColor = {
@@ -147,12 +156,24 @@ export default class PuyoqueStd {
 }
 
 class Field {
+  /**
+   *
+   * @param {Number} width 横のマス数
+   * @param {Number} height 縦のマス数
+   */
   constructor(width, height) {
+    /** @type {Number} 横のマス数*/
     this.width = width;
+    /** @type {Number} 縦のマス数*/
     this.height = height;
+    /** @type {Puyo[][]} 盤面のぷよの情報 */
     this.map = [];
+
+    /** @type {Puyo[]} ネクストぷよの情報 */
     this.next = [];
+
     this.mapRecord = [];
+
     this.mapClear();
     this.nextClear();
     this.floatingPuyo = [];
@@ -219,19 +240,19 @@ class Field {
     return this.adjacentPoints[y][x];
   }
 
-  mapClone() {
-    let clone = [];
+  cloneMap() {
+    let map = [];
 
     for (let y = 0; y < this.height; y++) {
-      clone[y] = [];
+      map[y] = [];
       for (let x = 0; x < this.width; x++) {
-        clone[y][x] = this.puyoClone(x, y);
+        map[y][x] = this.puyoClone(x, y);
       }
     }
-    return clone;
+    return map;
   }
 
-  nextsClone() {
+  cloneNextPuyos() {
     let clone = [];
 
     for (let x = 0; x < this.width; x++) {
@@ -243,8 +264,8 @@ class Field {
 
   recordMap() {
     this.mapRecord.push({
-      map: this.mapClone(),
-      next: this.nextsClone(),
+      map: this.cloneMap(),
+      next: this.cloneNextPuyos(),
     });
   }
 
@@ -274,24 +295,40 @@ class Field {
   }
 
   getChance(x, y) {
-    if (!this.isRangeField(x, y)) return PuyoqueStd.puyoColor.blank;
+    if (!this.isRangeField(x, y)) return false;
     return this.map[y][x].chance;
   }
 
-  setPuyo(x, y, color, isChance) {
+  getPlus(x, y) {
+    if (!this.isRangeField(x, y)) return false;
+    return this.map[y][x].plus;
+  }
+
+  countPointsToPlus(points) {
+    let count = 0;
+    for (const p of points) {
+      if (this.getPlus(p.x, p.y)) count++;
+    }
+
+    return count;
+  }
+
+  setPuyo(x, y, color, isChance, isPlus) {
     if (!this.isRangeField(x, y)) return;
     this.map[y][x].color = color;
     this.map[y][x].chance = isChance;
+    this.map[y][x].plus = isPlus;
   }
 
   setNextColor(x, color) {
     if (!this.isRangeField(x, 0)) return;
     this.next[x].color = color;
   }
-  setNextPuyo(x, color, isChance) {
+  setNextPuyo(x, color, isChance, isPlus) {
     if (!this.isRangeField(x, 0)) return;
     this.next[x].color = color;
     this.next[x].chance = isChance;
+    this.next[x].plus = isPlus;
   }
   getNextColor(x) {
     if (!this.isRangeField(x, 0)) return PuyoqueStd.puyoColor.blank;
@@ -350,19 +387,21 @@ class Field {
   puyoClone(x, y) {
     let color = this.getColor(x, y);
     let chance = this.getChance(x, y);
-    return new Puyo(color, chance);
+    let plus = this.getPlus(x, y);
+    return new Puyo(color, chance, plus);
   }
 
   nextClone(x) {
     let color = this.getNextColor(x);
     let chance = false;
-    return new Puyo(color, chance);
+    let plus = false;
+    return new Puyo(color, chance, plus);
   }
 
   setMapColor(map) {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
-        this.setPuyo(x, y, map[y][x], false);
+        this.setPuyo(x, y, map[y][x], false, false);
       }
     }
   }
@@ -370,14 +409,16 @@ class Field {
   setMapPuyo(map) {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
-        this.setPuyo(x, y, map[y][x].color, map[y][x].chance);
+        const puyo = map[y][x];
+        this.setPuyo(x, y, puyo.color, puyo.chance, puyo.plus);
       }
     }
   }
 
-  setNexts(nexts) {
+  setNextPuyos(nexts) {
     for (let x = 0; x < this.width; x++) {
-      this.setNextPuyo(x, nexts[x].color, nexts[x].chance);
+      const puyo = nexts[x];
+      this.setNextPuyo(x, puyo.color, puyo.chance, puyo.plus);
     }
   }
 
@@ -391,18 +432,25 @@ class Field {
     }
   }
 
+  /**
+   * 盤面のぷよの色をすべて取得する
+   * @returns {PuyoqueStd.puyoColor[][]} puyo color map
+   */
   getMap() {
-    let cloneMap = [];
+    let map = [];
 
     for (let y = 0; y < this.height; y++) {
-      cloneMap[y] = [];
+      map[y] = [];
       for (let x = 0; x < this.width; x++) {
-        cloneMap[y][x] = this.getColor(x, y);
+        map[y][x] = this.getColor(x, y);
       }
     }
-    return cloneMap;
+    return map;
   }
 
+  /**
+   * 盤面の情報をconsole.logに出力する
+   */
   output() {
     let text = "";
     for (let x = 0; x < this.width; x++) {
@@ -421,8 +469,14 @@ class Field {
       for (let x = 0; x < this.width; x++) {
         let color = this.getColor(x, y);
         let chance = this.getChance(x, y);
+        let plus = this.getPlus(x, y);
+
+        let status = chance ? "*" : " ";
+        status = plus ? "+" : status;
+        status = chance && plus ? "@" : status;
+
         if (0 <= color && color < 10) {
-          text += chance ? "*" : " ";
+          text += status;
         }
         text += color;
         text += x < this.width - 1 ? "," : "";
@@ -433,6 +487,12 @@ class Field {
     console.log(text);
   }
 
+  /**
+   * 指定座標の色をひとつずらす
+   * 赤 -> 青 -> 黄 -> 緑 -> 紫
+   * @param {Number} x マス
+   * @param {Number} y マス
+   */
   shiftColor(x, y) {
     if (this.isBlank(x, y)) return false;
     let puyoColor = PuyoqueStd.puyoColor;
@@ -447,6 +507,10 @@ class Field {
     this.setColor(x, y, changedColor[color]);
   }
 
+  /**
+   * 盤面のすべてのぷよ色をひとつずらす
+   * 赤 -> 青 -> 黄 -> 緑 -> 紫
+   */
   shuffleMap() {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
@@ -615,7 +679,9 @@ class Field {
         if (this.isBlank(x, y)) blankNum++;
         else if (blankNum > 0) {
           let puyo = this.puyoClone(x, y);
-          puyos.push(new FloatingPuyo(x, y, puyo.color, puyo.chance, blankNum));
+          puyos.push(
+            new FloatingPuyo(x, y, puyo.color, puyo.chance, puyo.plus, blankNum)
+          );
         }
       }
     }
@@ -681,7 +747,7 @@ class Field {
       if (blankNum === 0) continue;
       let color = this.getNextColor(x);
       if (!this.isNextBlank(x)) {
-        puyos.push(new FloatingPuyo(x, -1, color, false, blankNum));
+        puyos.push(new FloatingPuyo(x, -1, color, false, false, blankNum));
       }
     }
     return puyos;
@@ -772,7 +838,8 @@ class Field {
       const y = puyo.y + puyo.dropStep;
       const color = puyo.color;
       const chance = puyo.chance;
-      this.setPuyo(x, y, color, chance);
+      const plus = puyo.plus;
+      this.setPuyo(x, y, color, chance, plus);
     }
   }
 
@@ -990,3 +1057,5 @@ class Field {
     return linkNum;
   }
 }
+
+export { PuyoqueStd, Puyo };

@@ -58,7 +58,11 @@
                 class="puyo-img"
                 @click="pickPuyo(color - 1 + 9)"
               />
-              <img src="@/assets/plus.svg" class="puyo-plus" />
+              <img
+                src="@/assets/plus.svg"
+                class="puyo-plus"
+                @click="pickPuyo(color - 1 + 9)"
+              />
             </div>
           </template>
         </section>
@@ -373,6 +377,12 @@ export default {
     position: absolute;
     right: 8%;
     bottom: 8%;
+
+    transition: transform 0.25s ease-in-out;
+  }
+
+  .puyos > .picked-puyo > .puyo-plus {
+    transform: translateY(-20px);
   }
 
   .puyos-color {

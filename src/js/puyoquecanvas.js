@@ -1,11 +1,12 @@
 /* eslint-disable */
 import * as PIXI from "pixi.js";
-import PuyoqueStd from "@/js/puyoquestd.js";
+import { PuyoqueStd } from "@/js/puyoquestd.js";
 import Point from "@/js/point.js";
 import Route from "@/js/route.js";
 
 const backgroundColor = 0xc8c8c8;
 const backgroundColorForEditMode = 0x224422;
+const plusSvgPath = "./img/plus.svg";
 
 export default class PuyoqueCanvas {
   static origPuyoWidth = 97;
@@ -47,6 +48,7 @@ export default class PuyoqueCanvas {
     this.initContainers();
     this.puyoTextures = [];
     this.puyoSprites = [];
+    this.plusSprites = [];
     this.selectedPaintSprites = [];
     this.floatingPuyoSprites = [];
     this.nextPuyoSprites = [];
@@ -96,7 +98,7 @@ export default class PuyoqueCanvas {
 
     this.dropSpeed = 5;
     this.chainWait = 2;
-    await PIXI.Assets.load("./img/puyos.json").then(() => {
+    await PIXI.Assets.load(["./img/puyos.json", plusSvgPath]).then(() => {
       this.onAssetsLoaded();
     });
   }
@@ -104,6 +106,8 @@ export default class PuyoqueCanvas {
   initContainers() {
     this.container = new PIXI.Container();
     this.puyoContainer = new PIXI.Container();
+    this.puyoContainers = [];
+    this.fieldContainer = new PIXI.Container();
     this.selectedPuyoContainer = new PIXI.Container();
     this.touchContainer = new PIXI.Container();
     this.selectGraph = new PIXI.Graphics();
@@ -143,11 +147,13 @@ export default class PuyoqueCanvas {
       this.field.height,
       false
     );
+    /*
     for (let y = 0; y < this.field.height; y++) {
       for (let x = 0; x < this.field.width; x++) {
         let puyo = this.getPuyoSprite(x, y);
       }
     }
+      */
     this.selectRoute = new Route();
   }
 
@@ -164,6 +170,39 @@ export default class PuyoqueCanvas {
     let nextScale = nextFieldHeight / PuyoqueCanvas.origNextHeight;
     this.nextHeight = PuyoqueCanvas.origNextHeight * nextScale;
   }
+
+  initPuyoContainers() {
+    this.puyoContainers = [];
+    for (let y = 0; y < this.field.height; y++) {
+      let lineContainers = [];
+      for (let x = 0; x < this.field.width; x++) {
+        let container = new PIXI.Container();
+        container.x = this.puyoWidth * x;
+        container.y = this.puyoHeight * y + this.nextHeight;
+
+        let hitAreaScale = 0.8;
+        let width = this.puyoWidth * hitAreaScale;
+        let height = this.puyoHeight * hitAreaScale;
+        let hitX = (this.puyoWidth - width) / 2;
+        let hitY = (this.puyoHeight - height) / 2;
+        container.eventMode = "static";
+
+        /*
+            container.hitArea = new PIXI.Rectangle(
+          container.x + hitX,
+          container.y + hitY,
+          width,
+          height
+        );      
+         */
+        container.hitArea = new PIXI.Rectangle(hitX, hitY, width, height);
+
+        lineContainers.push(container);
+        this.fieldContainer.addChild(container);
+      }
+      this.puyoContainers.push(lineContainers);
+    }
+  }
   initPuyoSprites() {
     const puyoScale = this.puyoScale;
 
@@ -175,31 +214,58 @@ export default class PuyoqueCanvas {
         );
         sprite.scale.x = puyoScale;
         sprite.scale.y = puyoScale;
-        sprite.x = this.puyoWidth * x;
-        sprite.y = this.puyoHeight * y + this.nextHeight;
+        //sprite.x = this.puyoWidth * x;
+        //sprite.y = this.puyoHeight * y + this.nextHeight;
+        sprite.x = 0;
+        sprite.y = 0;
 
         // sprite.eventMode = "static";
         //sprite.cursor = "pointer";
 
+        const c = this.puyoContainers[y][x];
         let hitAreaScale = 0.8;
         let width = sprite.width * hitAreaScale;
         let height = sprite.height * hitAreaScale;
         let hitX = (sprite.width - width) / 2;
         let hitY = (sprite.height - height) / 2;
         sprite.hitArea = new PIXI.Rectangle(
-          sprite.x + hitX,
-          sprite.y + hitY,
+          c.x + sprite.x + hitX,
+          c.y + sprite.y + hitY,
           width,
           height
         );
 
         lineSprites.push(sprite);
-        this.puyoContainer.addChild(sprite);
+        this.puyoContainers[y][x].addChild(sprite);
+        //this.puyoContainer.addChild(sprite);
       }
 
       this.puyoSprites.push(lineSprites);
     }
   }
+  initPlusSprites() {
+    const puyoScale = this.puyoScale;
+    const puyoSize = PuyoqueCanvas.origPuyoWidth * puyoScale;
+    const plusSize = puyoSize * 0.4;
+
+    this.plusSprites = [];
+    for (let y = 0; y < this.field.height; y++) {
+      let lineSprites = [];
+      for (let x = 0; x < this.field.width; x++) {
+        let sprite = new PIXI.Sprite(PIXI.Texture.from(plusSvgPath));
+        sprite.width = plusSize;
+        sprite.height = plusSize;
+        sprite.x = this.puyoWidth * 0.5;
+        sprite.y = this.puyoHeight * 0.5;
+
+        lineSprites.push(sprite);
+        this.puyoContainers[y][x].addChild(sprite);
+      }
+
+      this.plusSprites.push(lineSprites);
+    }
+  }
+
   initNextPuyoSprites() {
     let squareWidth = this.canvasWidth / this.field.width;
     let nextFieldHeight =
@@ -227,7 +293,7 @@ export default class PuyoqueCanvas {
         );
 
         this.nextPuyoSprites.push(sprite);
-        this.puyoContainer.addChild(sprite);
+        this.fieldContainer.addChild(sprite);
       }
     }
   }
@@ -273,13 +339,15 @@ export default class PuyoqueCanvas {
     }
 
     this.calcPuyoRect();
+    this.initPuyoContainers();
     this.initPuyoSprites();
+    this.initPlusSprites();
     this.initNextPuyoSprites();
     this.initselectedPuyoContainer();
     this.initTouchContainer();
 
     this.container.addChild(
-      this.puyoContainer,
+      this.fieldContainer,
       this.selectedPuyoContainer,
       this.selectGraph
     );
@@ -290,6 +358,7 @@ export default class PuyoqueCanvas {
 
     this.resetSelect();
   }
+
   pointerDown(event) {
     if (this.isChain) return;
     this.isPush = true;
@@ -486,14 +555,16 @@ export default class PuyoqueCanvas {
             deletePuyoNum++;
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.kataPuyo) {
-            //TODO: 固ぷよ処理
+            this.field.setColor(x, y, puyoColor.ojamaChanging);
           }
         });
       }
       deleteColorList.push(color);
-      deletePuyoNum += points.length;
+      const plusCount = this.field.countPointsToPlus(points);
+      deletePuyoNum += points.length + plusCount;
       this.field.deletePuyos(points);
     });
+    this.ojamaChangingToOjama();
 
     if (chained) {
       this.colorMagCalc(
@@ -519,6 +590,22 @@ export default class PuyoqueCanvas {
 
     if (this.floatingPuyoSprites.length === 0) {
       this.chainEnd();
+    }
+  }
+
+  /**
+   * 連鎖に巻き込まれた状態の固ぷよ(c.ojamaChanging)があればおじゃまぷよに変換する
+   * 1連鎖の終わりごとに呼び出される
+   */
+  ojamaChangingToOjama() {
+    const field = this.field;
+    const c = PuyoqueStd.puyoColor;
+    for (let y = 0; y < field.height; y++) {
+      for (let x = 0; x < field.width; x++) {
+        if (field.colorComp(x, y, c.ojamaChanging)) {
+          field.setColor(x, y, c.ojama);
+        }
+      }
     }
   }
 
@@ -596,6 +683,7 @@ export default class PuyoqueCanvas {
           let color = this.field.getColor(x, y);
           this.setPuyoColor(x, y, color);
           this.setVisiblePuyo(x, y);
+          this.plusSprites[y][x].visible = this.field.getPlus(x, y);
         }
       }
     }
@@ -681,7 +769,9 @@ export default class PuyoqueCanvas {
     for (let y = 0; y < this.field.height; y++) {
       for (let x = 0; x < this.field.width; x++) {
         let puyo = this.getPuyoSprite(x, y);
-        if (puyo.hitArea.contains(canvasX, canvasY)) {
+
+        //let puyo = this.getPuyoContainer(x, y);
+        if (puyo && puyo.hitArea.contains(canvasX, canvasY)) {
           return new Point(x, y);
         }
       }
@@ -721,6 +811,7 @@ export default class PuyoqueCanvas {
 
   setInvisiblePuyo(x, y) {
     this.puyoSprites[y][x].visible = false;
+    this.plusSprites[y][x].visible = false;
   }
 
   setInvisiblePuyos(points) {
@@ -761,10 +852,16 @@ export default class PuyoqueCanvas {
   }
 
   getPuyoSprite(x, y) {
+    if (!this.field.isRangeField(x, y)) return null;
     return this.puyoSprites[y][x];
+  }
+  getPuyoContainer(x, y) {
+    if (!this.field.isRangeField(x, y)) return null;
+    return this.puyoContainers[y][x];
   }
 
   getNextPuyoSprite(x) {
+    if (!this.field.isRangeField(x, 0)) return null;
     return this.nextPuyoSprites[x];
   }
 

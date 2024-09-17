@@ -47,6 +47,7 @@
 
 <script>
 import convert from "color-convert";
+import { PuyoqueStd } from "@/js/puyoquestd";
 
 import InputImage from "@/components/InputImage.vue";
 import FieldRangeSelector from "@/components/FieldRangeSelector.vue";
@@ -83,6 +84,7 @@ export default {
 
       puyoMap: null,
       nextPuyos: null,
+      field: PuyoqueStd.createField(fieldWidth, fieldHeight),
 
       onload: false,
     };
@@ -103,7 +105,7 @@ export default {
         document.exitFullscreen();
         this.convertColorMapToPuyoMap();
         this.convertColorNextPuyosToNextPuyos();
-        this.$emit("set-puyo-map", this.puyoMap, this.nextPuyos);
+        this.$emit("set-puyo-map", this.field);
       }
     },
   },
@@ -199,12 +201,11 @@ export default {
     },
 
     convertColorMapToPuyoMap() {
-      console.dir(this.colorForPuyos);
-      console.dir(this.colorForPlusPuyos);
-      let map = [];
+      //let map = [];
       for (let y = 0; y < fieldHeight; y++) {
-        map[y] = [];
+        //map[y] = [];
         for (let x = 0; x < fieldWidth; x++) {
+          let isPlus = false;
           let color = this.colorCodeToPuyo(
             this.extractionColorMap[y][x],
             this.colorForPuyos
@@ -214,19 +215,26 @@ export default {
               this.extractionColorMap[y][x],
               this.colorForPlusPuyos
             );
+            isPlus = color !== -1;
           }
-          map[y][x] = color;
+          //map[y][x] = color;
+          if (color !== -1) {
+            this.field.setPuyo(x, y, color, false, isPlus);
+          }
         }
       }
-      this.puyoMap = map;
+      //this.puyoMap = map;
     },
     convertColorNextPuyosToNextPuyos() {
-      this.nextPuyos = [];
+      //this.nextPuyos = [];
       for (let x = 0; x < fieldWidth; x++) {
-        this.nextPuyos[x] = this.colorCodeToPuyo(
+        const color = this.colorCodeToPuyo(
           this.extractionColorNextPuyos[x],
           this.colorForNextPuyos
         );
+        if (color !== -1) {
+          this.field.setNextPuyo(x, color, false, false);
+        }
       }
     },
   },
