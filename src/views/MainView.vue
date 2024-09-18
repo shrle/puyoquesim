@@ -246,7 +246,7 @@ export default {
       this.canvasHeight,
       this.field
     );
-    this.canvas.colorMagCalc = this.colorMagCalc;
+    this.canvas.calcColorMag = this.calcColorMag;
     this.canvas.addSelectRouteListeners(this.getSelectRoute);
     this.canvas.addChainStartListener(this.chainStart);
     this.canvas.addChainListener(this.chain);
@@ -274,6 +274,7 @@ export default {
       doujiCorrection: 1,
       chainCorrection: 1,
       colorMag: [0, 0, 0, 0, 0, 0],
+      deletePrismNum: 0,
       chainNum: 0,
       erasePuyoLength: 4,
       selectMapIndex: 0,
@@ -374,6 +375,7 @@ export default {
 
     chainStart: function (selectRoute) {
       this.colorMag = [0, 0, 0, 0, 0, 0];
+      this.deletePrismNum = 0;
       this.lastMap = this.field.cloneMap();
       this.lastNextPuyos = this.field.cloneNextPuyos();
       this.replay = [];
@@ -402,6 +404,11 @@ export default {
       let wild = this.colorMag.reduce((sum, element) => sum + element, 0);
       let wildNum = 5;
       this.colorMag[wildNum] = wild;
+
+      for (const color in this.colorMag) {
+        this.colorMag[color] += this.deletePrismNum * 3;
+      }
+
       for (let i = 0; i < this.colorMag.length; i++) {
         this.colorMag[i] = this.round(this.colorMag[i], 2);
       }
@@ -426,7 +433,7 @@ export default {
       this.replayIndex = this.replay.length - 1;
     },
 
-    colorMagCalc: function (
+    calcColorMag: function (
       deletePuyoNum,
       deleteColorList,
       deletePrismNum,
@@ -444,9 +451,7 @@ export default {
       for (const color of deleteColorList) {
         colorMag[color] += puyoMag;
       }
-      for (const color in colorMag) {
-        colorMag[color] += deletePrismNum * 3;
-      }
+      this.deletePrismNum += deletePrismNum;
 
       for (let i = 0; i < colorMag.length; i++) {
         this.colorMag[i] += colorMag[i];

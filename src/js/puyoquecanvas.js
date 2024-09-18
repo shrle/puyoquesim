@@ -89,7 +89,7 @@ export default class PuyoqueCanvas {
      * @param {number} deletePrismNum
      * @param {number} chainNum
      */
-    this.colorMagCalc = function (
+    this.calcColorMag = function (
       deletePuyoNum,
       deleteColorList,
       deletePrismNum,
@@ -567,7 +567,7 @@ export default class PuyoqueCanvas {
     this.ojamaChangingToOjama();
 
     if (chained) {
-      this.colorMagCalc(
+      this.calcColorMag(
         deletePuyoNum,
         deleteColorList,
         deletePrismNum,
