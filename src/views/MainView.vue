@@ -160,47 +160,35 @@
         </div>
       </article>
 
-      <!---->
+      <!-- footer tools -->
       <article class="tools">
         <button class="icon-button" @click="selectFile">
           <span class="material-symbols-outlined"> screenshot </span>
         </button>
-        <button class="icon-button" @click="isShowPalette = !isShowPalette">
+
+        <button class="icon-button" @click="$refs.ColorPalette.open()">
           <span class="material-symbols-outlined"> palette </span>
+        </button>
+
+        <button class="icon-button" @click="$refs.SeedsMaps.open()">
+          <span class="material-symbols-outlined"> transition_dissolve </span>
         </button>
       </article>
 
-      <article class="palette-container" :class="{ show: isShowPalette }">
-        <div class="palette-top">
-          <div></div>
-          <div>
-            <button
-              class="icon-button hide-button"
-              @click="resetEditPaintColor"
-            >
-              <span class="material-symbols-outlined">
-                keyboard_arrow_down
-              </span>
-            </button>
-          </div>
-        </div>
-        <section class="palette">
-          <div v-for="index in 9" :key="index">
-            <img
-              :src="puyoImgUrl(index - 1)"
-              :class="{ selected: editPaintColor === index - 1 }"
-              @click="setEditPaintColor(index - 1)"
-            />
-          </div>
-          <button
-            class="icon-button"
-            :class="{ selected: editPaintColor === 999 }"
-            @click="setEditPaintColor(999)"
-          >
-            <span class="material-symbols-outlined"> ink_eraser </span>
-          </button>
-        </section>
-      </article>
+      <!-- footer palette -->
+      <ColorPalette
+        ref="ColorPalette"
+        @set-edit-paint-color="setEditPaintColor"
+      ></ColorPalette>
+
+      <!-- seed maps -->
+      <SeedsMaps
+        ref="SeedsMaps"
+        @set-map-color="setMapColor"
+        @set-seed-setting="setSeedSetting"
+      ></SeedsMaps>
+
+      <FooterDrawer ref="FooterDrawer" height="90vh" />
     </main>
   </div>
 
@@ -214,6 +202,11 @@
 import { PuyoqueStd } from "@/js/puyoquestd.js";
 import PuyoqueCanvas from "@/js/puyoquecanvas.js";
 import ParseScreenShot from "@/components/ParseScreenShot.vue";
+import FooterDrawer from "@/components/FooterDrawer.vue";
+import ColorPalette from "@/components/ColorPalette.vue";
+import SeedsMaps from "@/components/SeedsMaps.vue";
+import seeds from "@/js/seeds-settings";
+
 class History {
   constructor(map, lastNextPuyos, selectRoute, colorMag, chainNum) {
     this.map = map;
@@ -226,7 +219,13 @@ class History {
 
 export default {
   name: "MainView",
-  components: { ParseScreenShot },
+  components: {
+    ParseScreenShot,
+    FooterDrawer,
+    ColorPalette,
+    SeedsMaps,
+  },
+  setup() {},
   async mounted() {
     const screenWidth = window.screen.availWidth;
     if (screenWidth < 400) {
@@ -304,6 +303,19 @@ export default {
       nextPuyos: [0, 1, 2, 3, 4, 0, 1, 2],
 
       isShowPalette: false,
+
+      seedsList: [
+        { id: "normal", name: "通常のタネ" },
+        { id: "deleteThree", name: "3個消し" },
+        { id: "paintBlue", name: "青ぬりかえ" },
+        { id: "paintPurple", name: "紫ぬりかえ" },
+        { id: "paintYellow", name: "黄ぬりかえ" },
+        { id: "paintRed", name: "赤ぬりかえ" },
+        { id: "paintGreen", name: "緑ぬりかえ" },
+        //{ id: "", name: "" },
+      ],
+
+      seedMaps: [],
     };
   },
   computed: {
@@ -328,6 +340,15 @@ export default {
   methods: {
     selectFile() {
       this.$refs.ParseScreenShot.selectFile();
+    },
+    setSeedSetting(seedId) {
+      const s = seeds[seedId];
+      this.erasePuyoLength = s.erasePuyoLength;
+      this.chainCorrection = s.chainCorrection;
+      this.paintColor = s.selectRouteBehavior === "delete" ? -1 : s.color;
+    },
+    setMapColor(map) {
+      this.field.setMapColor(map);
     },
     setPuyoMap(field) {
       const nextPuyos = field.cloneNextPuyos();
@@ -501,11 +522,8 @@ export default {
       this.editPaintColor = color;
       this.canvas.setEditPaintColor(color);
     },
-    resetEditPaintColor() {
-      this.isShowPalette = false;
-      this.editPaintColor = -1;
-      this.setEditPaintColor(-1);
-    },
+
+    changeSeeds() {},
 
     puyoImgUrl(puyoIndex) {
       var puyoImg = [
@@ -657,93 +675,6 @@ export default {
     align-items: center;
   }
 
-  .palette-container {
-    z-index: 11;
-    background-color: #ffffff;
-    width: 100%;
-    height: 100px;
-    position: fixed;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    transform: translateY(100px);
-    transition: transform 0.25s ease-in-out;
-  }
-
-  .palette-container.show {
-    transform: translateY(0px);
-  }
-
-  .palette-top {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: end;
-  }
-
-  .palette-top > div:first-child {
-    flex: auto;
-    border-bottom: #aaaaaa 1px solid;
-  }
-  .palette-top .hide-button {
-    border: #aaaaaa 1px solid;
-    border-bottom: 0;
-    border-radius: 10% 10% 0 0;
-  }
-
-  .palette-top .hide-button:hover {
-    background-color: #cccccc;
-  }
-
-  .palette-top .hide-button:active {
-    background-color: #aaaaaa;
-  }
-
-  .palette {
-    width: 400px;
-    height: 60px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin: 0 auto;
-  }
-
-  .palette > div {
-    width: 40px;
-  }
-
-  @media screen and (max-width: 400px) {
-    .palette > div {
-      width: calc((100% - 40px) / 9);
-    }
-  }
-
-  .palette > button {
-    width: 40px;
-    transform: translateY(20px);
-    transition: transform 0.25s ease-in-out;
-  }
-
-  .palette > button.selected {
-    transform: translateY(0);
-  }
-
-  .palette > * > img {
-    transform: translateY(20px);
-    transition: transform 0.25s ease-in-out;
-    width: 100%;
-    object-fit: contain;
-    aspect-ratio: 97/87;
-  }
-
-  .palette > * > img.selected {
-    transform: translateY(0);
-  }
-
   .tools {
     z-index: 10;
     background-color: #ffffff;
@@ -759,6 +690,21 @@ export default {
     flex-direction: row;
     justify-content: left;
     column-gap: 10px;
+  }
+
+  .seed-maps-container {
+    z-index: 11;
+    background-color: #ffffff;
+    width: 100%;
+    height: 90vh;
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    transform: translateY(90vh);
+    transition: transform 0.25s ease-in-out;
   }
 
   @media screen and (max-width: 400px) {
