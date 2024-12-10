@@ -61,7 +61,6 @@ export default {
     },
     close() {},
     pickMap(map) {
-      console.dir(this.pickedSeedId);
       this.$emit("setMapColor", map);
       this.$emit("setSeedSetting", this.pickedSeedId);
       this.$refs.FooterDrawer.close();
@@ -70,7 +69,6 @@ export default {
       const id = e.target.value;
       this.maps = ref(seeds[id].maps);
       this.pickedSeedId = id;
-      console.dir(this.pickedSeedId);
     },
   },
 };

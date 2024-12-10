@@ -3,7 +3,6 @@ const loadImageSync = (src) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = (e) => {
-      console.log("画像読み込みエラー");
       console.dir(e);
       return reject(e);
     };

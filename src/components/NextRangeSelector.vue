@@ -172,6 +172,9 @@ import array2dInit from "@/js/array2d-init";
 export default {
   name: "NextRangeSelector",
   components: {},
+  props: {
+    isSkipSetting: Boolean,
+  },
   mounted() {
     this.pixiApp = getPixiApp();
     this.loadCursorArea();
@@ -249,6 +252,10 @@ export default {
         });
     },
     active() {
+      if (this.isSkipSetting) {
+        this.skipSetting();
+        return;
+      }
       this.showCanvas();
       setTimeout(this.allButtonEnable, 1000);
     },
@@ -306,6 +313,12 @@ export default {
       NextColorPicker.hideDrawArea();
       this.$emit("prev-step");
     },
+    skipSetting() {
+      this.showCanvas();
+      setTimeout(() => {
+        this.ok();
+      }, 100);
+    },
     ok: async function () {
       this.allButtonDisabled();
       //this.areaImage = await getCursorAreaImage();
@@ -313,6 +326,7 @@ export default {
       this.saveCursorArea();
       this.saveColorPickerPoint();
       NextColorPicker.hideDrawArea();
+
       this.$emit("set-extract-color-nextpuyo", map);
       this.isVisible = false;
     },

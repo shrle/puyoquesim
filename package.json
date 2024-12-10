@@ -12,7 +12,9 @@
     "@pixi/loaders": "^6.5.10",
     "color-convert": "^2.0.1",
     "core-js": "^3.8.3",
+    "pako": "^2.1.0",
     "pixi.js": "^7.4.2",
+    "urlsafe-base64": "^1.0.0",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3"
   },

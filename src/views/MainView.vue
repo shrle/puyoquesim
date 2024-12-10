@@ -162,9 +162,37 @@
 
       <!-- footer tools -->
       <article class="tools">
-        <button class="icon-button" @click="selectFile">
-          <span class="material-symbols-outlined"> screenshot </span>
-        </button>
+        <PopupButton>
+          <template v-slot:button>
+            <button class="icon-button">
+              <span class="material-symbols-outlined"> screenshot </span>
+            </button>
+          </template>
+
+          <template v-slot:popup>
+            <div class="popup">
+              <div>
+                <button class="text-button" @click="selectFile">
+                  SSの読み込み
+                </button>
+              </div>
+              <div>
+                <label for="isSkipSsSetting" style="margin-right: 10px"
+                  >設定のスキップ</label
+                ><input
+                  type="checkbox"
+                  id="isSkipSsSetting"
+                  v-model="isSkipSsSetting"
+                />
+              </div>
+              <div>
+                <button class="text-button" @click="adjustSsSettings">
+                  設定の修正
+                </button>
+              </div>
+            </div>
+          </template>
+        </PopupButton>
 
         <button class="icon-button" @click="$refs.ColorPalette.open()">
           <span class="material-symbols-outlined"> palette </span>
@@ -193,6 +221,7 @@
   </div>
 
   <ParseScreenShot
+    :isSkipSetting="isSkipSsSetting"
     @set-puyo-map="setPuyoMap"
     ref="ParseScreenShot"
   ></ParseScreenShot>
@@ -200,7 +229,9 @@
 
 <script>
 import { PuyoqueStd } from "@/js/puyoquestd.js";
+import Route from "@/js/route";
 import PuyoqueCanvas from "@/js/puyoquecanvas.js";
+import PopupButton from "@/components/PopupButton.vue";
 import ParseScreenShot from "@/components/ParseScreenShot.vue";
 import FooterDrawer from "@/components/FooterDrawer.vue";
 import ColorPalette from "@/components/ColorPalette.vue";
@@ -220,6 +251,7 @@ class History {
 export default {
   name: "MainView",
   components: {
+    PopupButton,
     ParseScreenShot,
     FooterDrawer,
     ColorPalette,
@@ -262,7 +294,7 @@ export default {
       fieldHeight: 6,
       field: {},
       canvas: {},
-      selectRoute: [], // readonly
+      selectRoute: new Route(), // readonly
       selectRouteLengthMax: 5,
       history: [],
       historyIndex: 0,
@@ -303,6 +335,7 @@ export default {
       nextPuyos: [0, 1, 2, 3, 4, 0, 1, 2],
 
       isShowPalette: false,
+      isSkipSsSetting: false,
 
       seedsList: [
         { id: "normal", name: "通常のタネ" },
@@ -347,6 +380,12 @@ export default {
       this.chainCorrection = s.chainCorrection;
       this.paintColor = s.selectRouteBehavior === "delete" ? -1 : s.color;
     },
+    adjustSsSettings() {
+      this.isSkipSsSetting = false;
+      setTimeout(() => {
+        this.$refs.ParseScreenShot.adjustSettings();
+      }, 100);
+    },
     setMapColor(map) {
       this.field.setMapColor(map);
     },
@@ -356,6 +395,8 @@ export default {
       this.field.setNextPuyos(nextPuyos);
       this.field.setMapPuyo(map);
       this.field.output();
+
+      this.addHistory(map, nextPuyos, new Route(), [0, 0, 0, 0, 0], 0);
     },
     getSelectRoute: function (selectRoute) {
       this.selectRoute = selectRoute;
@@ -368,6 +409,7 @@ export default {
     historyRouteShow: function () {
       if (this.history.length === 0) return;
       let history = this.history[this.historyIndex];
+      if (!history.selectRoute) return;
       this.field.setMapPuyo(history.map);
       this.field.setNextPuyos(history.lastNextPuyos);
       this.selectRoute = history.selectRoute.clone();
@@ -439,14 +481,18 @@ export default {
       }
 
       if (this.colorMag[5] <= 0) return;
+      this.addHistory(
+        this.lastMap,
+        this.lastNextPuyos,
+        this.selectRoute,
+        this.colorMag,
+        this.chainNum
+      );
+    },
+
+    addHistory(map, nextPuyos, selectRoute, colorMag, chainNum) {
       this.history.unshift(
-        new History(
-          this.lastMap,
-          this.lastNextPuyos,
-          this.selectRoute,
-          this.colorMag,
-          this.chainNum
-        )
+        new History(map, nextPuyos, selectRoute, colorMag, chainNum)
       );
       if (this.history.length >= this.historyMaxLength) {
         this.history.length = this.historyMaxLength;

@@ -14,32 +14,36 @@
 
     <FieldRangeSelector
       :canvasImage="image"
+      :isSkipSetting="isSkipSetting"
       @prev-step="prevStep"
       @set-extract-color-map="setExtractColorMap"
-      v-show="step === 1"
+      v-show="step === 1 && !isSkipSetting"
       ref="FieldRangeSelector"
     ></FieldRangeSelector>
 
     <PuyoColorPicker
+      :isSkipSetting="isSkipSetting"
       @prev-step="prevStep"
       @set-color-for-puyo="setColorForPuyos"
       :extractionColorMap="extractionColorMap"
-      v-show="step === 2"
+      v-show="step === 2 && !isSkipSetting"
       ref="PuyoColorPicker"
     ></PuyoColorPicker>
 
     <NextRangeSelector
+      :isSkipSetting="isSkipSetting"
       @prev-step="prevStep"
       @set-extract-color-nextpuyo="setExtractColorNextPuyos"
-      v-show="step === 3"
+      v-show="step === 3 && !isSkipSetting"
       ref="NextRangeSelector"
     ></NextRangeSelector>
 
     <NextPuyoColorPicker
+      :isSkipSetting="isSkipSetting"
       @prev-step="prevStep"
       @set-color-for-nextpuyos="setColorForNextPuyos"
       :extractionColorNextPuyos="extractionColorNextPuyos"
-      v-show="step === 4"
+      v-show="step === 4 && !isSkipSetting"
       ref="NextPuyoColorPicker"
     ></NextPuyoColorPicker>
   </div>
@@ -67,6 +71,9 @@ export default {
     NextRangeSelector,
     NextPuyoColorPicker,
   },
+  props: {
+    isSkipSetting: Boolean,
+  },
   mounted() {},
   data() {
     return {
@@ -92,7 +99,7 @@ export default {
   watch: {
     step() {
       if (this.step === 0) {
-        document.exitFullscreen();
+        document.exitFullscreen().catch(() => {});
       } else if (this.step === 1) {
         this.$refs.FieldRangeSelector.active();
       } else if (this.step === 2) {
@@ -102,7 +109,8 @@ export default {
       } else if (this.step === 4) {
         this.$refs.NextPuyoColorPicker.active();
       } else if (this.step === 5) {
-        document.exitFullscreen();
+        document.exitFullscreen().catch(() => {});
+
         this.convertColorMapToPuyoMap();
         this.convertColorNextPuyosToNextPuyos();
         this.$emit("set-puyo-map", this.field);
@@ -115,6 +123,10 @@ export default {
     },
     loadImage: function (image) {
       this.image = image;
+      this.step = 1;
+    },
+    adjustSettings() {
+      if (!this.image) return;
       this.step = 1;
     },
     setExtractColorMap: function (map) {

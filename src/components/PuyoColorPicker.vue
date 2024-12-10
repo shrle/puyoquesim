@@ -103,7 +103,7 @@ import array2dInit from "@/js/array2d-init";
 export default {
   name: "HomeView",
   components: {},
-  props: { extractionColorMap: Array },
+  props: { extractionColorMap: Array, isSkipSetting: Boolean },
   mounted() {
     this.loadcolorForPuyos();
     this.loadcolorForPlusPuyos();
@@ -140,7 +140,14 @@ export default {
         });
     },
     active() {
+      if (this.isSkipSetting) {
+        this.skipSetting();
+        return;
+      }
       setTimeout(this.allButtonEnable, 1000);
+    },
+    skipSetting() {
+      this.ok();
     },
     prev() {
       this.allButtonDisabled();

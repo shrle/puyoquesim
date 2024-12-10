@@ -168,7 +168,7 @@ import array2dInit from "@/js/array2d-init";
 export default {
   name: "FieldRangeSelector",
   components: {},
-  props: { canvasImage: Image },
+  props: { canvasImage: Image, isSkipSetting: Boolean },
   mounted() {
     this.pixiApp = appInit(screen.width, screen.height);
     this.ssCanvas = this.pixiApp.view;
@@ -248,6 +248,10 @@ export default {
         });
     },
     active() {
+      if (this.isSkipSetting) {
+        this.skipSetting();
+        return;
+      }
       document.documentElement.requestFullscreen({ navigationUI: "hide" });
       this.showCanvas();
       setTimeout(this.allButtonEnable, 1000);
@@ -314,6 +318,16 @@ export default {
       this.saveColorPickerPoint();
       FieldColorPicker.hideDrawArea();
       this.$emit("set-extract-color-map", map);
+    },
+    async skipSetting() {
+      this.showCanvas();
+      setTimeout(async () => {
+        const map = await FieldColorPicker.extractColorCodeFromMap();
+        this.saveCursorArea();
+        this.saveColorPickerPoint();
+        FieldColorPicker.hideDrawArea();
+        this.$emit("set-extract-color-map", map);
+      }, 100);
     },
     initCursorArea() {
       const h = screen.height;
