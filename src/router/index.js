@@ -3,7 +3,7 @@ import MainView from "@/views/MainView.vue";
 
 const routes = [
   {
-    path: "/",
+    path: "/:settings(.*)",
     name: "main",
     meta: { title: "ぷよクエ練習シミュレータ - new" },
     component: MainView,

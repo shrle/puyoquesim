@@ -18,6 +18,122 @@ class Puyo {
   clone() {
     return new Puyo(this.color, this.chance, this.plus);
   }
+
+  /**
+   * Puyoを1文字に変換する
+   * 返された1文字をPuyo.fromChar()に渡すことで再び同じPuyoを生成できる
+   * @returns
+   */
+  toChar() {
+    let num = 0;
+    num += this.chance ? 1 : 0;
+
+    num = num << 1;
+
+    num += this.plus ? 1 : 0;
+
+    num = num << 4;
+
+    //ぷよの色は -1 から始まるので +1 する
+    num += this.color + 1;
+
+    return Puyo.numToBase64Chars[num];
+  }
+
+  /**
+   * Puyo.toChar()から返される1文字からPuyoを生成する
+   * @param {string} 1文字
+   * @returns {Puyo | null}
+   */
+  static fromChar(char) {
+    if (typeof char !== "string") return null;
+    if (char.length !== 1) return null;
+
+    const num = Puyo.base64CharsToNum[char];
+    if (num === undefined) return null;
+
+    const FLAG_COLOR = 0xf;
+    const FLAG_CHANCE = 0x20;
+    const FLAG_PLUS = 0x10;
+
+    const color = num & FLAG_COLOR;
+    const chance = (num & FLAG_CHANCE) > 0;
+    const plus = (num & FLAG_PLUS) > 0;
+
+    // color - 1 : 文字へと変換する際に +1 したので -1 する
+    return new Puyo(color - 1, chance, plus);
+  }
+
+  static numToBase64Chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split(
+      ""
+    );
+  static base64CharsToNum = {
+    A: 0,
+    B: 1,
+    C: 2,
+    D: 3,
+    E: 4,
+    F: 5,
+    G: 6,
+    H: 7,
+    I: 8,
+    J: 9,
+    K: 10,
+    L: 11,
+    M: 12,
+    N: 13,
+    O: 14,
+    P: 15,
+    Q: 16,
+    R: 17,
+    S: 18,
+    T: 19,
+    U: 20,
+    V: 21,
+    W: 22,
+    X: 23,
+    Y: 24,
+    Z: 25,
+    a: 26,
+    b: 27,
+    c: 28,
+    d: 29,
+    e: 30,
+    f: 31,
+    g: 32,
+    h: 33,
+    i: 34,
+    j: 35,
+    k: 36,
+    l: 37,
+    m: 38,
+    n: 39,
+    o: 40,
+    p: 41,
+    q: 42,
+    r: 43,
+    s: 44,
+    t: 45,
+    u: 46,
+    v: 47,
+    w: 48,
+    x: 49,
+    y: 50,
+    z: 51,
+    0: 52,
+    1: 53,
+    2: 54,
+    3: 55,
+    4: 56,
+    5: 57,
+    6: 58,
+    7: 59,
+    8: 60,
+    9: 61,
+    "-": 62,
+    _: 63,
+  };
 }
 
 class FloatingPuyo {
@@ -289,6 +405,12 @@ class Field {
     if (!this.isRangeField(x, y)) return;
     this.map[y][x].color = color;
   }
+
+  getPuyo(x, y) {
+    if (!this.isRangeField(x, y)) return null;
+    return this.map[y][x];
+  }
+
   getColor(x, y) {
     if (!this.isRangeField(x, y)) return PuyoqueStd.puyoColor.blank;
     return this.map[y][x].color;
@@ -329,6 +451,10 @@ class Field {
     this.next[x].color = color;
     this.next[x].chance = isChance;
     this.next[x].plus = isPlus;
+  }
+  getNextPuyo(x) {
+    if (!this.isRangeField(x, 0)) return null;
+    return this.next[x];
   }
   getNextColor(x) {
     if (!this.isRangeField(x, 0)) return PuyoqueStd.puyoColor.blank;
@@ -406,6 +532,10 @@ class Field {
     }
   }
 
+  /**
+   * 盤面を設定する
+   * @param {Puyo[][]} map
+   */
   setMapPuyo(map) {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
@@ -415,6 +545,10 @@ class Field {
     }
   }
 
+  /**
+   * ネクストぷよを設定する
+   * @param {Puyo[]} nexts
+   */
   setNextPuyos(nexts) {
     for (let x = 0; x < this.width; x++) {
       const puyo = nexts[x];
@@ -446,6 +580,78 @@ class Field {
       }
     }
     return map;
+  }
+
+  /**
+   * 盤面のデータを文字列として返す
+   * 戻り値をField.fromCode()に渡すことで同じ盤面のFieldを生成できる
+   * @returns
+   */
+  toCode() {
+    let code = "";
+    for (let x = 0; x < this.width; x++) {
+      const puyo = this.getNextPuyo(x);
+      const char = puyo.toChar();
+      code += char;
+    }
+
+    code += "_";
+
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const puyo = this.getPuyo(x, y);
+        const char = puyo.toChar();
+        code += char;
+      }
+    }
+    return code;
+  }
+
+  /**
+   * Field.toCode()から渡された文字列からFieldを生成する
+   * @param {string} code
+   * @returns {Field | null}
+   */
+  static fromCode(code) {
+    if (typeof code !== "string") return null;
+
+    const data = code.split("_");
+    if (data.length !== 2) return null;
+
+    const nextChars = data[0];
+    const mapChars = data[1];
+
+    const width = nextChars.length;
+
+    if (mapChars.length % width !== 0) return null;
+
+    const height = mapChars.length / width;
+
+    /** @type {Puyo[]} ネクストぷよ */
+    let nexts = [];
+    for (const n of nextChars) {
+      nexts.push(Puyo.fromChar(n));
+    }
+
+    console.log("nexts: ");
+    console.dir(nexts);
+    /** @type {Puyo[][]} 盤面のぷよ */
+    let map = [];
+    let i = 0;
+    for (let y = 0; y < height; y++) {
+      let line = [];
+      for (let x = 0; x < width; x++) {
+        const puyo = Puyo.fromChar(mapChars[i]);
+        line.push(puyo);
+        i++;
+      }
+      map.push(line);
+    }
+
+    let field = new Field(width, height);
+    field.setNextPuyos(nexts);
+    field.setMapPuyo(map);
+    return field;
   }
 
   /**
@@ -1058,4 +1264,4 @@ class Field {
   }
 }
 
-export { PuyoqueStd, Puyo };
+export { PuyoqueStd, Puyo, Field };

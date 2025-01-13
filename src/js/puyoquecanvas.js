@@ -6,7 +6,7 @@ import Route from "@/js/route.js";
 
 const backgroundColor = 0xc8c8c8;
 const backgroundColorForEditMode = 0x224422;
-const plusSvgPath = "./img/plus.svg";
+const plusSvgPath = "img/plus.svg";
 
 export default class PuyoqueCanvas {
   static origPuyoWidth = 97;
@@ -31,7 +31,13 @@ export default class PuyoqueCanvas {
     "next-purple.png",
   ];
 
-  constructor() {}
+  /**
+   *
+   * @param {string} resourceDir リソースのあるディレクトリ
+   */
+  constructor(resourceDir) {
+    this.resourceDir = resourceDir;
+  }
   async init(selecter, canvasWidth, canvasHeigth, field) {
     this.canvasWidth = canvasWidth;
     this.canvasHeigth = canvasHeigth;
@@ -98,9 +104,13 @@ export default class PuyoqueCanvas {
 
     this.dropSpeed = 5;
     this.chainWait = 2;
-    await PIXI.Assets.load(["./img/puyos.json", plusSvgPath]).then(() => {
-      this.onAssetsLoaded();
-    });
+
+    const rd = this.resourceDir;
+    await PIXI.Assets.load([rd + "img/puyos.json", rd + plusSvgPath]).then(
+      () => {
+        this.onAssetsLoaded();
+      }
+    );
   }
 
   initContainers() {
@@ -180,7 +190,7 @@ export default class PuyoqueCanvas {
         container.x = this.puyoWidth * x;
         container.y = this.puyoHeight * y + this.nextHeight;
 
-        let hitAreaScale = 0.8;
+        let hitAreaScale = 0.6;
         let width = this.puyoWidth * hitAreaScale;
         let height = this.puyoHeight * hitAreaScale;
         let hitX = (this.puyoWidth - width) / 2;
@@ -209,9 +219,7 @@ export default class PuyoqueCanvas {
     for (let y = 0; y < this.field.height; y++) {
       let lineSprites = [];
       for (let x = 0; x < this.field.width; x++) {
-        let sprite = new PIXI.Sprite(
-          this.puyoTextures[this.field.getColor(x, y)]
-        );
+        let sprite = new PIXI.Sprite(this.puyoTextures[0]);
         sprite.scale.x = puyoScale;
         sprite.scale.y = puyoScale;
         //sprite.x = this.puyoWidth * x;
@@ -386,19 +394,19 @@ export default class PuyoqueCanvas {
     if (this.editPaintColor > -1) return;
 
     /** select route */
-    if (
-      !this.isSelected(fp.x, fp.y) &&
-      !this.field.isBlank(fp.x, fp.y) &&
-      this.field.canTracePuyo(fp.x, fp.y)
-    ) {
-      if (this.selectRoute.length > 0 && !this.isAdjacentSelected(fp.x, fp.y))
-        return;
-      let puyo = this.getPuyoSprite(fp.x, fp.y);
-      this.selectRoute.push(fp);
-      this.select(fp.x, fp.y);
-      for (const func of this.selectRouteListeners) {
-        func(this.selectRoute.clone());
-      }
+    if (this.isSelected(fp.x, fp.y)) return console.log("isSelected");
+    if (this.field.isBlank(fp.x, fp.y)) return console.log("field.isBlank");
+    if (!this.field.canTracePuyo(fp.x, fp.y))
+      return console.log("field.canTracePuyo");
+    // 現在なぞろうとしているぷよの周囲のぷよが選択されていない
+    if (this.selectRoute.length > 0 && !this.isAdjacentSelected(fp.x, fp.y))
+      return console.log("!isAdjacentSelected");
+
+    //let puyo = this.getPuyoSprite(fp.x, fp.y);
+    this.selectRoute.push(fp);
+    this.select(fp.x, fp.y);
+    for (const func of this.selectRouteListeners) {
+      func(this.selectRoute.clone());
     }
   }
 
@@ -866,7 +874,7 @@ export default class PuyoqueCanvas {
   }
 
   isSelected(x, y) {
-    if (!this.field.isRangeField(x, y)) return true;
+    if (!this.field.isRangeField(x, y)) return false;
     return this.selectedField[y][x];
   }
 

@@ -228,7 +228,7 @@
 </template>
 
 <script>
-import { PuyoqueStd } from "@/js/puyoquestd.js";
+import { PuyoqueStd, Field } from "@/js/puyoquestd.js";
 import Route from "@/js/route";
 import PuyoqueCanvas from "@/js/puyoquecanvas.js";
 import PopupButton from "@/components/PopupButton.vue";
@@ -237,6 +237,7 @@ import FooterDrawer from "@/components/FooterDrawer.vue";
 import ColorPalette from "@/components/ColorPalette.vue";
 import SeedsMaps from "@/components/SeedsMaps.vue";
 import seeds from "@/js/seeds-settings";
+import { numToUrlSafeChar, UrlSafeCharToNum } from "@/js/url-safe-char-convert";
 
 class History {
   constructor(map, lastNextPuyos, selectRoute, colorMag, chainNum) {
@@ -259,6 +260,7 @@ export default {
   },
   setup() {},
   async mounted() {
+    console.log("resource dir: " + process.env.VUE_APP_RESOURCE_PATH);
     const screenWidth = window.screen.availWidth;
     if (screenWidth < 400) {
       this.canvasWidth = screenWidth;
@@ -266,11 +268,14 @@ export default {
       this.canvasHeight = 59 * scale;
     }
 
-    this.field = PuyoqueStd.createField(this.fieldWidth, this.fieldHeight);
-    this.field.setMapColor(this.map);
-    this.field.setNextColors(this.nextPuyos);
-    this.field.output();
-    this.canvas = new PuyoqueCanvas();
+    this.paramToSettings();
+    if (!this.field) {
+      this.field = PuyoqueStd.createField(this.fieldWidth, this.fieldHeight);
+      this.field.setMapColor(this.map);
+      this.field.setNextColors(this.nextPuyos);
+    }
+
+    this.canvas = new PuyoqueCanvas(process.env.VUE_APP_RESOURCE_PATH);
     await this.canvas.init(
       "#cv",
       this.canvasWidth,
@@ -292,7 +297,8 @@ export default {
       canvasHeight: 295,
       fieldWidth: 8,
       fieldHeight: 6,
-      field: {},
+      /** @type{Field} */
+      field: null,
       canvas: {},
       selectRoute: new Route(), // readonly
       selectRouteLengthMax: 5,
@@ -362,12 +368,27 @@ export default {
   watch: {
     erasePuyoLength: function () {
       this.canvas.setErasePuyoLength(this.erasePuyoLength);
+      this.setParam();
     },
     selectNextColor: function () {
       this.field.setAllNextColor(this.selectNextColor);
+      this.setParam();
     },
-    paintColor: function () {
+    paintColor: function (newPaintColor) {
+      if (typeof newPaintColor === "string") {
+        this.paintColor = parseInt(newPaintColor);
+      }
       this.canvas.setPaintColor(this.paintColor);
+      this.setParam();
+    },
+    selectRouteLengthMax() {
+      this.setParam();
+    },
+    doujiCorrection() {
+      this.setParam();
+    },
+    chainCorrection() {
+      this.setParam();
     },
   },
   methods: {
@@ -388,15 +409,16 @@ export default {
     },
     setMapColor(map) {
       this.field.setMapColor(map);
+      this.setParam();
     },
     setPuyoMap(field) {
       const nextPuyos = field.cloneNextPuyos();
       const map = field.cloneMap();
       this.field.setNextPuyos(nextPuyos);
       this.field.setMapPuyo(map);
-      this.field.output();
 
       this.addHistory(map, nextPuyos, new Route(), [0, 0, 0, 0, 0], 0);
+      this.setParam();
     },
     getSelectRoute: function (selectRoute) {
       this.selectRoute = selectRoute;
@@ -533,6 +555,7 @@ export default {
       this.selectRoute = [];
       this.canvas.resetRoute();
       this.replay = [];
+      this.setParam();
       //this.canvas.allVisible();
     },
 
@@ -567,6 +590,7 @@ export default {
     setEditPaintColor(color) {
       this.editPaintColor = color;
       this.canvas.setEditPaintColor(color);
+      this.setParam();
     },
 
     changeSeeds() {},
@@ -591,6 +615,73 @@ export default {
 
     round: function (value, base = 0) {
       return Math.round(value * 10 ** base) / 10 ** base;
+    },
+
+    settingsToCode() {
+      let code = "";
+      // color は -1から始まるので +1 する
+      code += numToUrlSafeChar(this.selectNextColor + 1);
+      code += numToUrlSafeChar(this.paintColor + 1);
+      code += numToUrlSafeChar(this.erasePuyoLength);
+      code += numToUrlSafeChar(this.selectRouteLengthMax);
+
+      const di = Math.trunc(this.doujiCorrection);
+      code += numToUrlSafeChar(di);
+      code += this.doujiCorrection % 1 > 0 ? "_" : "";
+
+      const ci = Math.trunc(this.chainCorrection);
+      code += numToUrlSafeChar(ci);
+      code += this.chainCorrection % 1 > 0 ? "_" : "";
+      return code;
+    },
+    setParam() {
+      console.log("setParam");
+      let code = this.field.toCode();
+      code += "-";
+      code += this.settingsToCode();
+
+      this.$router.push({ name: "main", params: { settings: code } });
+    },
+    paramToSettings() {
+      const settings = this.$route.params.settings;
+      const data = settings.split("-");
+      if (data.length !== 2) return;
+
+      const fieldCode = data[0];
+      const field = Field.fromCode(fieldCode);
+      if (!field) return;
+      this.field = field;
+
+      /*
+       * settingCode = selectNextColor, paintColor, erasePuyoLength, selectRouteLengthMax, doujiCorrection, chainCorrection
+       */
+      const settingCode = data[1];
+      let i = 0;
+      this.selectNextColor = UrlSafeCharToNum(settingCode[i]) - 1;
+      i++;
+
+      this.paintColor = UrlSafeCharToNum(settingCode[i]) - 1;
+      i++;
+
+      this.erasePuyoLength = UrlSafeCharToNum(settingCode[i]);
+      i++;
+
+      this.selectRouteLengthMax = UrlSafeCharToNum(settingCode[i]);
+      i++;
+
+      this.doujiCorrection = UrlSafeCharToNum(settingCode[i]);
+      i++;
+      if (settingCode[i] === "_") {
+        this.doujiCorrection += 0.5;
+        i++;
+      }
+
+      this.chainCorrection = UrlSafeCharToNum(settingCode[i]);
+      i++;
+      if (settingCode[i] === "_") {
+        this.chainCorrection += 0.5;
+        i++;
+      }
     },
   },
 };
