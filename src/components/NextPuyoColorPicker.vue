@@ -373,6 +373,7 @@ input[type="number"] {
   height: 20px;
   margin-top: 20px;
   transition: margin-top 0.25s ease-in-out;
+  position: relative;
 }
 
 .puyos > .picked-puyo {
@@ -386,10 +387,10 @@ input[type="number"] {
 }
 
 .puyos .puyo-plus {
-  width: 50%;
+  width: 25%;
   position: absolute;
-  right: 8%;
-  bottom: 8%;
+  right: 30%;
+  bottom: -10%;
 
   transition: transform 0.25s ease-in-out;
 }

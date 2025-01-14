@@ -341,7 +341,7 @@ class Field {
   nextClear() {
     this.next = [];
     for (let x = 0; x < this.width; x++) {
-      this.next[x] = new Puyo(PuyoqueStd.puyoColor.blank, false);
+      this.next[x] = new Puyo(PuyoqueStd.puyoColor.blank, false, false);
     }
   }
 
@@ -462,8 +462,13 @@ class Field {
   }
 
   getNextChance(x) {
-    if (!this.isRangeField(x, 0)) return PuyoqueStd.puyoColor.blank;
+    if (!this.isRangeField(x, 0)) return false;
     return this.next[x].chance;
+  }
+
+  getNextPlus(x) {
+    if (!this.isRangeField(x, 0)) return false;
+    return this.next[x].plus;
   }
 
   setAllNextColor(color) {
@@ -480,10 +485,13 @@ class Field {
     if (!this.isRangeField(x, y)) return PuyoqueStd.puyoColor.blank;
     this.map[y][x].chance = false;
   }
+  deletePlus(x, y) {
+    if (!this.isRangeField(x, y)) return PuyoqueStd.puyoColor.blank;
+    this.map[y][x].plus = false;
+  }
 
   deletePuyo(x, y) {
-    this.deleteChance(x, y);
-    this.setColor(x, y, PuyoqueStd.puyoColor.blank);
+    this.setPuyo(x, y, PuyoqueStd.puyoColor.blank, false, false);
   }
 
   deletePuyos(pointList) {
@@ -507,7 +515,7 @@ class Field {
   }
 
   deleteNext(x) {
-    this.setNextColor(x, PuyoqueStd.puyoColor.blank);
+    this.setNextPuyo(x, PuyoqueStd.puyoColor.blank, false, false);
   }
 
   puyoClone(x, y) {
@@ -519,8 +527,8 @@ class Field {
 
   nextClone(x) {
     let color = this.getNextColor(x);
-    let chance = false;
-    let plus = false;
+    let chance = this.getNextChance(x);
+    let plus = this.getNextPlus(x);
     return new Puyo(color, chance, plus);
   }
 
@@ -951,9 +959,11 @@ class Field {
         if (this.isBlank(x, y)) blankNum++;
       }
       if (blankNum === 0) continue;
-      let color = this.getNextColor(x);
+      let puyo = this.getNextPuyo(x);
       if (!this.isNextBlank(x)) {
-        puyos.push(new FloatingPuyo(x, -1, color, false, false, blankNum));
+        puyos.push(
+          new FloatingPuyo(x, -1, puyo.color, puyo.chance, puyo.plus, blankNum)
+        );
       }
     }
     return puyos;
@@ -1009,8 +1019,14 @@ class Field {
         if (this.isBlank(x, y)) blankQueue.push(new Point(x, y));
         else if (blankQueue.length > 0) {
           let blankPoint = blankQueue.shift();
-          let color = this.getColor(x, y);
-          this.setColor(blankPoint.x, blankPoint.y, color);
+          let puyo = this.getPuyo(x, y);
+          this.setPuyo(
+            blankPoint.x,
+            blankPoint.y,
+            puyo.color,
+            puyo.chance,
+            puyo.plus
+          );
           this.deletePuyo(x, y);
           blankQueue.push(new Point(x, y));
         }
@@ -1029,8 +1045,8 @@ class Field {
         if (this.isBlank(x, y)) blankNum++;
       }
       if (blankNum === 0) continue;
-      let color = this.getNextColor(x);
-      this.setPuyo(x, blankNum - 1, color, false);
+      let puyo = this.getNextPuyo(x);
+      this.setPuyo(x, blankNum - 1, puyo.color, puyo.chance, puyo.plus);
       this.deleteNext(x);
     }
   }

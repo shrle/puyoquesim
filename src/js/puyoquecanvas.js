@@ -58,6 +58,7 @@ export default class PuyoqueCanvas {
     this.selectedPaintSprites = [];
     this.floatingPuyoSprites = [];
     this.nextPuyoSprites = [];
+    this.nextPlusSprites = [];
     this.paintColor = -1;
     this.editPaintColor = -1;
     this.selectMode = "selectRouteDelete";
@@ -178,6 +179,8 @@ export default class PuyoqueCanvas {
     let nextFieldHeight =
       this.canvasHeigth - this.puyoHeight * this.field.height;
     let nextScale = nextFieldHeight / PuyoqueCanvas.origNextHeight;
+    this.nextScale = nextScale;
+    this.nextWidth = PuyoqueCanvas.origNextWidth * nextScale;
     this.nextHeight = PuyoqueCanvas.origNextHeight * nextScale;
   }
 
@@ -274,6 +277,26 @@ export default class PuyoqueCanvas {
     }
   }
 
+  initNextPuyoPlusSprites() {
+    const nextScale = this.nextScale;
+    const nextSize = PuyoqueCanvas.origNextWidth * nextScale;
+    const plusSize = nextSize * 0.6;
+
+    this.nextPlusSprites = [];
+
+    for (let x = 0; x < this.field.width; x++) {
+      let sprite = new PIXI.Sprite(PIXI.Texture.from(plusSvgPath));
+      sprite.width = plusSize;
+      sprite.height = plusSize;
+      const nx = this.nextPuyoSprites[x].x;
+      sprite.x = nx + this.nextWidth * 0.4;
+      sprite.y = this.nextHeight * 0.4;
+
+      this.nextPlusSprites.push(sprite);
+      this.fieldContainer.addChild(sprite);
+    }
+  }
+
   initNextPuyoSprites() {
     let squareWidth = this.canvasWidth / this.field.width;
     let nextFieldHeight =
@@ -351,6 +374,7 @@ export default class PuyoqueCanvas {
     this.initPuyoSprites();
     this.initPlusSprites();
     this.initNextPuyoSprites();
+    this.initNextPuyoPlusSprites();
     this.initselectedPuyoContainer();
     this.initTouchContainer();
 
@@ -703,6 +727,7 @@ export default class PuyoqueCanvas {
         let color = this.field.getNextColor(x);
         this.setNextPuyoColor(x, color);
         this.setVisibleNext(x);
+        this.nextPlusSprites[x].visible = this.field.getNextPlus(x);
       }
     }
   }
@@ -825,6 +850,7 @@ export default class PuyoqueCanvas {
   setInvisiblePuyos(points) {
     for (const p of points) {
       this.puyoSprites[p.y][p.x].visible = false;
+      this.plusSprites[p.y][p.x].visible = false;
     }
   }
 
@@ -833,10 +859,12 @@ export default class PuyoqueCanvas {
   }
   setInvisibleNext(x) {
     this.nextPuyoSprites[x].visible = false;
+    this.nextPlusSprites[x].visible = false;
   }
   setInvisibleNexts(list) {
     for (const x of list) {
       this.nextPuyoSprites[x].visible = false;
+      this.nextPlusSprites[x].visible = false;
     }
   }
 
