@@ -215,228 +215,219 @@ export default {
 </script>
 
 <style scoped>
-@layer base, util;
-@layer base {
-  * {
-    margin: 0px;
-    padding: 0px;
-  }
-
-  img {
-    line-height: 0;
-  }
-
-  .puyo-color-picker h3 {
-    margin-top: 20px;
-    font-size: 15px;
-  }
-  .puyo-color-picker button {
-    width: 40px;
-    height: 40px;
-    border: 0;
-    background-color: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .puyo-color-picker button:hover {
-    background-color: #cccccc;
-  }
-
-  .puyo-color-picker button:active {
-    background-color: #aaaaaa;
-  }
-
-  .puyo-color-picker .text-button {
-    background-color: #000000;
-    color: #ffffff;
-    width: 120px;
-    height: 30px;
-    border-radius: 18px;
-    border: transparent 2px solid;
-  }
-
-  .puyo-color-picker .text-button:active {
-    background-color: #222222;
-  }
-
-  .puyo-color-picker .text-button:focus {
-    background-color: #ffffff;
-    border: #000000 2px solid;
-    color: #000000;
-  }
-
-  .header-buttons {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 40px;
-    border: 0px;
-  }
-  .header-buttons > left,
-  .header-buttons > right {
-    width: 40px;
-    height: 40px;
-  }
-  .header-buttons > center {
-    flex: auto;
-  }
-
-  .puyo-color-picker {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .picker-container {
-    background-color: rgb(255, 255, 255);
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    z-index: 1001;
-
-    top: 0;
-    left: 0;
-  }
-
-  .puyo-color-picker > * {
-    margin-bottom: 10px;
-  }
-
-  .puyo-color-picker h3 {
-    margin-top: 20px;
-    font-size: 15px;
-  }
-  input[type="number"] {
-    width: 70px;
-    height: 40px;
-    border: 0;
-    border-bottom: #000000 2px solid;
-  }
-
-  .puyo-color-picker button {
-    width: 40px;
-    height: 40px;
-    border: 0;
-    background-color: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .puyo-color-picker button:hover {
-    background-color: #cccccc;
-  }
-
-  .puyo-color-picker button:active {
-    background-color: #aaaaaa;
-  }
-
-  .puyo-color-picker .text-button {
-    background-color: #000000;
-    color: #ffffff;
-    width: 120px;
-    height: 30px;
-    border-radius: 18px;
-    border: transparent 2px solid;
-  }
-
-  .puyo-color-picker .text-button:active {
-    background-color: #222222;
-  }
-
-  .puyo-color-picker .text-button:focus {
-    background-color: #ffffff;
-    border: #000000 2px solid;
-    color: #000000;
-  }
-
-  .puyo-color-linking {
-    width: 100%;
-    padding: 10px;
-  }
-
-  .puyos {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-  }
-  .puyos > * {
-    width: 100%;
-    margin-top: 20px;
-    transition: margin-top 0.25s ease-in-out;
-    position: relative;
-  }
-
-  .puyos > .picked-puyo {
-    margin-top: 0;
-  }
-
-  .puyos .puyo-img {
-    width: 100%;
-    object-fit: contain;
-    aspect-ratio: 97/87;
-  }
-
-  .puyos .puyo-plus {
-    width: 50%;
-    position: absolute;
-    right: 8%;
-    bottom: 8%;
-
-    transition: transform 0.25s ease-in-out;
-  }
-
-  .puyos > .picked-puyo > .puyo-plus {
-    transform: translateY(-20px);
-  }
-
-  .puyos-color {
-    width: 100%;
-    height: 20px;
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-  }
-  .puyos-color > * {
-    width: 100%;
-    height: 20px;
-  }
-
-  .input-line {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    justify-content: left;
-    align-items: center;
-  }
-
-  .input-line > * {
-    margin-right: 20px;
-  }
-  .input-line > * > label {
-    margin-right: 20px;
-  }
-
-  .display_map {
-    background-color: #000000;
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    width: 100%;
-  }
-  .display_map div {
-    aspect-ratio: 97/87;
-  }
-  .display_map img {
-    width: 100%;
-    object-fit: contain;
-  }
+* {
+  margin: 0px;
+  padding: 0px;
 }
 
-@layer util {
-  .mt-3 {
-    margin-top: 10px;
-  }
+img {
+  line-height: 0;
+}
+
+.puyo-color-picker h3 {
+  margin-top: 20px;
+  font-size: 15px;
+}
+.puyo-color-picker button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.puyo-color-picker button:hover {
+  background-color: #cccccc;
+}
+
+.puyo-color-picker button:active {
+  background-color: #aaaaaa;
+}
+
+.puyo-color-picker .text-button {
+  background-color: #000000;
+  color: #ffffff;
+  width: 120px;
+  height: 30px;
+  border-radius: 18px;
+  border: transparent 2px solid;
+}
+
+.puyo-color-picker .text-button:active {
+  background-color: #222222;
+}
+
+.puyo-color-picker .text-button:focus {
+  background-color: #ffffff;
+  border: #000000 2px solid;
+  color: #000000;
+}
+
+.header-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  height: 40px;
+  border: 0px;
+}
+.header-buttons > left,
+.header-buttons > right {
+  width: 40px;
+  height: 40px;
+}
+.header-buttons > center {
+  flex: auto;
+}
+
+.puyo-color-picker {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-container {
+  background-color: rgb(255, 255, 255);
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  z-index: 1001;
+
+  top: 0;
+  left: 0;
+}
+
+.puyo-color-picker > * {
+  margin-bottom: 10px;
+}
+
+.puyo-color-picker h3 {
+  margin-top: 20px;
+  font-size: 15px;
+}
+input[type="number"] {
+  width: 70px;
+  height: 40px;
+  border: 0;
+  border-bottom: #000000 2px solid;
+}
+
+.puyo-color-picker button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.puyo-color-picker button:hover {
+  background-color: #cccccc;
+}
+
+.puyo-color-picker button:active {
+  background-color: #aaaaaa;
+}
+
+.puyo-color-picker .text-button {
+  background-color: #000000;
+  color: #ffffff;
+  width: 120px;
+  height: 30px;
+  border-radius: 18px;
+  border: transparent 2px solid;
+}
+
+.puyo-color-picker .text-button:active {
+  background-color: #222222;
+}
+
+.puyo-color-picker .text-button:focus {
+  background-color: #ffffff;
+  border: #000000 2px solid;
+  color: #000000;
+}
+
+.puyo-color-linking {
+  width: 100%;
+  padding: 10px;
+}
+
+.puyos {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+}
+.puyo-color-picker .puyos > * {
+  width: 100%;
+  margin-top: 20px;
+  transition: margin-top 0.25s ease-in-out;
+  position: relative;
+}
+
+.puyos > .picked-puyo {
+  margin-top: 0;
+}
+
+.puyos .puyo-img {
+  width: 100%;
+  object-fit: contain;
+  aspect-ratio: 97/87;
+}
+
+.puyos .puyo-plus {
+  width: 50%;
+  position: absolute;
+  right: 8%;
+  bottom: 8%;
+
+  transition: transform 0.25s ease-in-out;
+}
+
+.puyos > .picked-puyo > .puyo-plus {
+  transform: translateY(-20px);
+}
+
+.puyos-color {
+  width: 100%;
+  height: 20px;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+}
+.puyos-color > * {
+  width: 100%;
+  height: 20px;
+}
+
+.input-line {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+}
+
+.input-line > * {
+  margin-right: 20px;
+}
+.input-line > * > label {
+  margin-right: 20px;
+}
+
+.display_map {
+  background-color: #000000;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 100%;
+}
+.display_map div {
+  aspect-ratio: 97/87;
+}
+.display_map img {
+  width: 100%;
+  object-fit: contain;
 }
 </style>

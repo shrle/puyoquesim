@@ -43,6 +43,42 @@
           ></div>
         </section>
 
+        <!-- plus puyo-->
+        <section class="puyos mt-3">
+          <template v-for="color in colorTypesNum" :key="color + 9">
+            <div
+              :class="{ 'picked-puyo': color - 1 + 9 === pickedPuyoIndex }"
+              v-if="color - 1 < 5"
+            >
+              <img
+                :src="imgUrl(color - 1)"
+                alt="puyo"
+                class="puyo-img"
+                @click="pickPuyo(color - 1 + 9)"
+              />
+              <img
+                src="@/assets/plus.svg"
+                class="puyo-plus"
+                @click="pickPuyo(color - 1 + 9)"
+              />
+            </div>
+          </template>
+        </section>
+
+        <section class="puyos-color">
+          <template
+            v-for="(colorCode, index) in colorForNextPlusPuyos"
+            :key="index"
+          >
+            <div
+              :style="{
+                'background-color':
+                  colorCode === '' ? '#000000' : '#' + colorCode,
+              }"
+            ></div>
+          </template>
+        </section>
+
         <p class="mt-3">ぷよの色を選択してください</p>
         <section class="mt-3 display_map">
           <div
@@ -67,12 +103,14 @@ export default {
   props: { extractionColorNextPuyos: Array, isSkipSetting: Boolean },
   mounted() {
     this.loadColorForNextPuyos();
+    this.loadColorForNextPlusPuyos();
   },
   data() {
     return {
       colorTypesNum: 9,
       map: array2dInit(8, 6, -1),
       colorForNextPuyos: ["", "", "", "", "", "", "", "", ""],
+      colorForNextPlusPuyos: ["", "", "", "", "", "", "", "", ""],
       pickedPuyoIndex: 0,
     };
   },
@@ -114,20 +152,44 @@ export default {
     },
     ok: async function () {
       this.allButtonDisabled();
-      this.$emit("set-color-for-nextpuyos", this.colorForNextPuyos);
+      this.$emit(
+        "set-color-for-nextpuyos",
+        this.colorForNextPuyos,
+        this.colorForNextPlusPuyos
+      );
     },
     pickPuyo(index) {
       this.pickedPuyoIndex = index;
     },
     pickColor(color) {
+      const ppi = this.pickedPuyoIndex;
+      if (0 <= ppi && ppi <= 8) {
+        this.pickColorForNextPuyos(color);
+      } else if (9 <= ppi && ppi <= 13) {
+        this.pickColorForNextPlusPuyos(color);
+      }
+    },
+    pickColorForNextPuyos(color) {
       this.colorForNextPuyos[this.pickedPuyoIndex] = color;
       const str = JSON.stringify(this.colorForNextPuyos);
       localStorage.setItem("colorForNextPuyos", str);
     },
+
+    pickColorForNextPlusPuyos(color) {
+      this.colorForNextPlusPuyos[this.pickedPuyoIndex - 9] = color;
+      const str = JSON.stringify(this.colorForNextPlusPuyos);
+      localStorage.setItem("colorForNextPlusPuyos", str);
+    },
+
     loadColorForNextPuyos() {
       const str = localStorage.getItem("colorForNextPuyos");
       if (!str) return;
       this.colorForNextPuyos = JSON.parse(str);
+    },
+    loadColorForNextPlusPuyos() {
+      const str = localStorage.getItem("colorForNextPlusPuyos");
+      if (!str) return;
+      this.colorForNextPlusPuyos = JSON.parse(str);
     },
     imgUrl(imgNum) {
       var puyoImg = [
@@ -321,6 +383,19 @@ input[type="number"] {
   width: 100%;
   height: 20px;
   object-fit: contain;
+}
+
+.puyos .puyo-plus {
+  width: 50%;
+  position: absolute;
+  right: 8%;
+  bottom: 8%;
+
+  transition: transform 0.25s ease-in-out;
+}
+
+.puyos > .picked-puyo > .puyo-plus {
+  transform: translateY(-20px);
 }
 
 .puyos-color {

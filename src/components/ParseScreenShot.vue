@@ -88,6 +88,7 @@ export default {
       colorForPlusPuyos: [],
       /** ネクストぷよの場合のぷよ番号ごとに関連付けられたカラーコード */
       colorForNextPuyos: [],
+      colorForNextPlusPuyos: [],
 
       puyoMap: null,
       nextPuyos: null,
@@ -142,8 +143,9 @@ export default {
       this.colorForPlusPuyos = colorForPlusPuyos;
       this.nextStep();
     },
-    setColorForNextPuyos(colors) {
-      this.colorForNextPuyos = colors;
+    setColorForNextPuyos(colorForNextPuyos, colorForNextPlusPuyos) {
+      this.colorForNextPuyos = colorForNextPuyos;
+      this.colorForNextPlusPuyos = colorForNextPlusPuyos;
       this.nextStep();
     },
     prevStep() {
@@ -240,12 +242,20 @@ export default {
     convertColorNextPuyosToNextPuyos() {
       //this.nextPuyos = [];
       for (let x = 0; x < fieldWidth; x++) {
-        const color = this.colorCodeToPuyo(
+        let isPlus = false;
+        let color = this.colorCodeToPuyo(
           this.extractionColorNextPuyos[x],
           this.colorForNextPuyos
         );
+        if (color === -1) {
+          color = this.colorCodeToPuyo(
+            this.extractionColorNextPuyos[x],
+            this.colorForNextPlusPuyos
+          );
+          isPlus = color !== -1;
+        }
         if (color !== -1) {
-          this.field.setNextPuyo(x, color, false, false);
+          this.field.setNextPuyo(x, color, false, isPlus);
         }
       }
     },

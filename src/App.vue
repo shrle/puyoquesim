@@ -3,9 +3,13 @@
 </template>
 
 <style>
-* {
-  margin: 0px;
-  padding: 0px;
+@layer util;
+
+@layer base {
+  * {
+    margin: 0px;
+    padding: 0px;
+  }
 }
 
 button.icon-button {
@@ -81,5 +85,11 @@ button.text-button:focus {
 
 .popup > *:last-child {
   padding: 20px;
+}
+
+@layer util {
+  .mt-3 {
+    margin-top: 10px;
+  }
 }
 </style>
