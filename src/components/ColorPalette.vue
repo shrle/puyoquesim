@@ -11,8 +11,8 @@
         </div>
         <button
           class="icon-button"
-          :class="{ selected: editPaintColor === 999 }"
-          @click="setEditPaintColor(999)"
+          :class="{ selected: editPaintColor === ERASER }"
+          @click="setEditPaintColor(ERASER)"
         >
           <span class="material-symbols-outlined"> ink_eraser </span>
         </button>
@@ -116,6 +116,7 @@ export default {
   },
   data() {
     return {
+      ERASER: 999,
       colorNum: 5,
       editPaintColor: -1,
 
@@ -149,6 +150,7 @@ export default {
     setInterval(() => {
       this.countPuyoColorPaint();
       this.paintColorOrder = this.verifyPaintColor();
+      this.blankToBasePuyo();
     }, 500);
   },
   methods: {
@@ -160,7 +162,7 @@ export default {
       this.$emit("setEditPaintColor", -1);
     },
     setEditPaintColor(index) {
-      this.editPaintColor = index;
+      this.editPaintColor = Number(index);
       this.$emit("setEditPaintColor", index);
     },
     resisterBase() {
@@ -210,6 +212,26 @@ export default {
       const color = this.field.getColor(x, y);
       const baseColor = this.baseField.getColor(x, y);
       return color === baseColor;
+    },
+
+    /**
+     * 消しゴムで盤面を消すことで生じた空欄に基礎盤面のぷよを戻す
+     */
+    blankToBasePuyo() {
+      if (this.editPaintColor !== this.ERASER) return;
+      if (!this.baseField) return;
+
+      const width = this.field.width;
+      const height = this.field.height;
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (!this.field.isBlank(x, y)) continue;
+
+          const puyo = this.baseField.getPuyo(x, y);
+          this.field.setPuyo(x, y, puyo.color, puyo.chance, puyo.plus);
+        }
+      }
     },
 
     /**
