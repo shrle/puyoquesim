@@ -39,12 +39,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 .container {
   z-index: 11;
   width: 100%;
@@ -53,6 +47,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  margin: auto;
   gap: 0;
 
   bottom: calc((-40px - v-bind(height)));
