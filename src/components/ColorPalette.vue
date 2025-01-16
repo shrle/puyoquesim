@@ -1,36 +1,155 @@
 <template>
-  <FooterDrawer ref="FooterDrawer" @close="close" height="60px">
-    <section class="palette">
-      <div v-for="index in 9" :key="index">
-        <img
-          :src="puyoImgUrl(index - 1)"
-          :class="{ selected: editPaintColor === index - 1 }"
-          @click="setEditPaintColor(index - 1)"
-        />
+  <FooterDrawer ref="FooterDrawer" @close="close" height="40vh">
+    <div class="color-palette">
+      <section class="palette">
+        <div v-for="index in 9" :key="index">
+          <img
+            :src="puyoImgUrl(index - 1)"
+            :class="{ selected: editPaintColor === index - 1 }"
+            @click="setEditPaintColor(index - 1)"
+          />
+        </div>
+        <button
+          class="icon-button"
+          :class="{ selected: editPaintColor === 999 }"
+          @click="setEditPaintColor(999)"
+        >
+          <span class="material-symbols-outlined"> ink_eraser </span>
+        </button>
+      </section>
+      <div class="tool-container">
+        <div class="color-counter">
+          <div
+            v-for="(color, index) in puyoColorClassName"
+            :key="color"
+            :class="color"
+          >
+            {{ puyoColorPaintCounter[index] }}
+          </div>
+        </div>
+
+        <div class="paint-color-order-container mt-3">
+          <div
+            class="paint-color-order"
+            :class="{
+              show:
+                paintColorOrder &&
+                paintColorOrder.length > 0 &&
+                !isShownBaseField,
+            }"
+          >
+            <template v-for="(color, index) in paintColorOrder" :key="color">
+              <img :src="puyoImgUrl(color)" />
+              <span
+                class="material-symbols-outlined"
+                v-if="index < paintColorOrder.length - 1"
+              >
+                arrow_forward
+              </span>
+            </template>
+          </div>
+          <div
+            class="error-paint-color-order"
+            :class="{
+              show: !paintColorOrder && this.baseField && !isShownBaseField,
+            }"
+          >
+            4つかたまりができてしまいます。
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <PopupButton ref="PopupButton">
+            <template v-slot:button>
+              <button class="text-button">現在の盤面を基礎として登録</button>
+            </template>
+
+            <template v-slot:popup>
+              <div class="popup">
+                <div>
+                  <button
+                    class="text-button"
+                    @click="$refs.PopupButton.closePopup()"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+                <div>
+                  <button class="text-button mt-3" @click="resisterBase()">
+                    登録
+                  </button>
+                </div>
+              </div>
+            </template>
+          </PopupButton>
+        </div>
+
+        <button
+          class="icon-button mt-3"
+          v-if="baseField"
+          @pointerdown="showBaseField()"
+          @pointerup="hideBaseField()"
+          @pointerleave="hideBaseField()"
+        >
+          <span class="material-symbols-outlined"> visibility </span>
+        </button>
       </div>
-      <button
-        class="icon-button"
-        :class="{ selected: editPaintColor === 999 }"
-        @click="setEditPaintColor(999)"
-      >
-        <span class="material-symbols-outlined"> ink_eraser </span>
-      </button>
-    </section>
+    </div>
   </FooterDrawer>
 </template>
 
 <script>
 import FooterDrawer from "./FooterDrawer.vue";
+import PopupButton from "@/components/PopupButton.vue";
+import { Field } from "@/js/puyoquestd";
 export default {
   name: "ColorPalette",
   emits: ["setEditPaintColor"],
   components: {
     FooterDrawer,
+    PopupButton,
+  },
+  props: {
+    /**@type {Field} */
+    field: Field,
+    erasePuyoLength: Number,
   },
   data() {
     return {
+      colorNum: 5,
       editPaintColor: -1,
+
+      /**@type {Field} */
+      baseField: null,
+      isShownBaseField: false,
+
+      /**@type {Field} */
+      bufField: {},
+
+      /**@type {Field} */
+      verifyField: {},
+      verifyBufField: {},
+      isUnderVerification: false,
+
+      /**@type {PuyoqueStd.puyoColor[] | null} 4つかたまりができない、ぬりかえを行う順序 , null = どの順序でも4つかたまりができてしまう */
+      paintColorOrder: null,
+
+      puyoColorClassName: [
+        "puyo-red",
+        "puyo-blue",
+        "puyo-yellow",
+        "puyo-green",
+        "puyo-purple",
+      ],
+      puyoColorPaintCounter: [0, 0, 0, 0, 0],
     };
+  },
+  computed: {},
+  mounted() {
+    setInterval(() => {
+      this.countPuyoColorPaint();
+      this.paintColorOrder = this.verifyPaintColor();
+    }, 500);
   },
   methods: {
     open() {
@@ -44,6 +163,139 @@ export default {
       this.editPaintColor = index;
       this.$emit("setEditPaintColor", index);
     },
+    resisterBase() {
+      this.baseField = this.field.clone();
+      this.bufField = this.field.clone();
+      this.verifyField = this.field.clone();
+      this.$refs.PopupButton.closePopup();
+    },
+    showBaseField() {
+      console.log("showBaseField");
+      this.isShownBaseField = true;
+
+      this.bufField.copy(this.field);
+      this.field.copy(this.baseField);
+    },
+    hideBaseField() {
+      if (!this.isShownBaseField) return;
+      this.field.copy(this.bufField);
+      this.isShownBaseField = false;
+    },
+
+    /**
+     * 基礎盤面と現在の盤面の色を比較して色ごとに異なるぷよの数を集計する
+     */
+    countPuyoColorPaint() {
+      if (!this.baseField) return;
+
+      const width = this.field.width;
+      const height = this.field.height;
+
+      let colorCounter = [0, 0, 0, 0, 0];
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (this.compareBaseFieldColor(x, y)) continue;
+
+          const color = this.field.getColor(x, y);
+          colorCounter[color]++;
+        }
+      }
+      this.puyoColorPaintCounter = colorCounter;
+    },
+    /**
+     * 基礎盤面と現在の盤面の色を比較する
+     */
+    compareBaseFieldColor(x, y) {
+      const color = this.field.getColor(x, y);
+      const baseColor = this.baseField.getColor(x, y);
+      return color === baseColor;
+    },
+
+    /**
+     * ぬりかえを行う際に4つかたまりができないか検証する
+     *
+     * @returns {PuyoqueStd.puyoColor[] | null} 4つかたまりができない、ぬりかえを行う順序 , null = どの順序でも4つかたまりができてしまう
+     */
+    verifyPaintColor() {
+      if (!this.baseField) return;
+      if (this.isShownBaseField) return;
+
+      // 検証開始
+      this.isUnderVerification = true;
+
+      let colorList = [0, 1, 2, 3, 4];
+      let colorIndex = 0;
+
+      /**
+       * @type {PuyoqueStd.puyoColor[]} 4つかたまりができない、ぬりかえを行う順序
+       */
+      let paintColorOrder = [];
+      this.verifyField.copy(this.baseField);
+      this.verifyBufField = this.verifyField.clone();
+
+      while (colorIndex < colorList.length) {
+        // ぬりかえ前の盤面を保管
+        this.verifyBufField.copy(this.verifyField);
+
+        const color = colorList[colorIndex];
+        // 1. field の colorList[colorIndex]の色の部分だけ を this.verifyField に上書きする
+        const isPaint = this.paintVerifyField(color);
+        // 2. this.verifyField に 4つかたまりがないか調べあれば colorIndex++; continue;
+        const r = this.verifyField.isChain(this.erasePuyoLength);
+        if (r) {
+          // 4つかたまりがあったので次の色へ移る
+          colorIndex++;
+
+          // 失敗したのでぬりかえ前の盤面に戻す
+          this.verifyField.copy(this.verifyBufField);
+          continue;
+        }
+
+        // 4つかたまりがないので colorList から 現在の色を削除して最初の色から検証する
+        colorList.splice(colorIndex, 1);
+        // ぬりかえ順序の記録
+        if (isPaint) paintColorOrder.push(color);
+        colorIndex = 0;
+      }
+
+      // 検証終了
+      this.isUnderVerification = false;
+
+      if (colorList.length === 0) {
+        // すべての検証がクリアされた
+        return paintColorOrder;
+      }
+
+      return null;
+    },
+
+    /**
+     * field の colorList[color]の色の部分だけ を this.verifyField に上書きする
+     * @param color
+     *
+     * @returns {boolean} true = ぬりかえを行った
+     */
+    paintVerifyField(color) {
+      const width = this.field.width;
+      const height = this.field.height;
+
+      let isPaint = false;
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const c = this.field.getColor(x, y);
+          if (c !== color) continue;
+
+          // ぬりかえが発生したら isPaint = true;
+          if (!this.verifyField.colorComp(x, y, color)) isPaint = true;
+          this.verifyField.setColor(x, y, color);
+        }
+      }
+
+      return isPaint;
+    },
+
     puyoImgUrl(puyoIndex) {
       var puyoImg = [
         "./img/red.webp",
@@ -66,6 +318,13 @@ export default {
 </script>
 
 <style scoped>
+.color-palette {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-items: center;
+}
+
 .palette {
   width: 400px;
   height: 60px;
@@ -79,7 +338,18 @@ export default {
   width: 40px;
 }
 
+.tool-container {
+  width: 400px;
+  margin: 30px auto;
+}
+
 @media screen and (max-width: 400px) {
+  .palette {
+    width: 100%;
+  }
+  .tool-container {
+    width: 100%;
+  }
   .palette > div {
     width: calc((100% - 40px) / 9);
   }
@@ -105,5 +375,68 @@ export default {
 
 .palette > * > img.selected {
   transform: translateY(0);
+}
+
+.color-counter {
+  width: 300px;
+  height: 20px;
+  display: flex;
+  flex-direction: row;
+}
+
+.color-counter > * {
+  flex: auto;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.puyo-purple {
+  background-color: #cc99ff;
+}
+
+.puyo-yellow {
+  background-color: #ffff99;
+}
+
+.puyo-red {
+  background-color: #ff9999;
+}
+
+.puyo-green {
+  background-color: #99ff99;
+}
+
+.puyo-blue {
+  background-color: #66ccff;
+}
+
+.paint-color-order-container {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.paint-color-order-container > * {
+  visibility: hidden;
+}
+
+.paint-color-order-container > *.show {
+  visibility: visible;
+}
+
+.paint-color-order {
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.paint-color-order img {
+  width: 30px;
+
+  object-fit: contain;
+  aspect-ratio: 97/87;
 }
 </style>

@@ -279,9 +279,10 @@ class Field {
    */
   constructor(width, height) {
     /** @type {Number} 横のマス数*/
-    this.width = width;
+    this._width = width;
+
     /** @type {Number} 縦のマス数*/
-    this.height = height;
+    this._height = height;
     /** @type {Puyo[][]} 盤面のぷよの情報 */
     this.map = [];
 
@@ -327,6 +328,12 @@ class Field {
     }
   }
 
+  get width() {
+    return this._width;
+  }
+  get height() {
+    return this._height;
+  }
   mapClear() {
     this.map = [];
 
@@ -376,6 +383,36 @@ class Field {
     }
 
     return clone;
+  }
+
+  /**
+   *
+   * @returns {Field}
+   */
+  clone() {
+    let newField = PuyoqueStd.createField(this.width, this.height);
+    newField.copy(this);
+    return newField;
+  }
+
+  /**
+   *
+   * @param {Field} copyField
+   */
+  copy(copyField) {
+    if (!(copyField instanceof Field)) return;
+
+    for (let x = 0; x < copyField.width; x++) {
+      const n = copyField.getNextPuyo(x);
+      this.setNextPuyo(x, n.color, n.chance, n.plus);
+    }
+
+    for (let y = 0; y < copyField.height; y++) {
+      for (let x = 0; x < copyField.width; x++) {
+        const m = copyField.getPuyo(x, y);
+        this.setPuyo(x, y, m.color, m.chance, m.plus);
+      }
+    }
   }
 
   recordMap() {

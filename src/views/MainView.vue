@@ -207,6 +207,8 @@
       <ColorPalette
         ref="ColorPalette"
         @set-edit-paint-color="setEditPaintColor"
+        :field="field"
+        :erasePuyoLength="erasePuyoLength"
       ></ColorPalette>
 
       <!-- seed maps -->
@@ -379,7 +381,6 @@ export default {
         this.paintColor = parseInt(newPaintColor);
       }
       this.canvas.setPaintColor(this.paintColor);
-      this.setParam();
     },
     selectRouteLengthMax() {
       this.setParam();
@@ -590,7 +591,7 @@ export default {
     setEditPaintColor(color) {
       this.editPaintColor = color;
       this.canvas.setEditPaintColor(color);
-      this.setParam();
+      if (color === -1) this.setParam();
     },
 
     changeSeeds() {},
@@ -688,19 +689,11 @@ export default {
 </script>
 
 <style>
-@import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
-
 @layer base,util;
 
 @layer base {
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
   body {
     /*font-family: "Kosugi Maru", sans-serif;*/
-    font-family: "Roboto", sans-serif;
   }
 
   h1 {
@@ -739,6 +732,7 @@ export default {
   #main {
     width: 100%;
     height: 100%;
+    margin-bottom: 300px;
     display: flex;
     justify-content: center;
   }

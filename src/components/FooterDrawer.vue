@@ -50,18 +50,17 @@ export default {
   width: 100%;
   height: calc(40px + v-bind(height));
   position: fixed;
-  bottom: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 0;
 
-  transform: translateY(calc(40px + v-bind(height)));
-  transition: transform 0.25s ease-in-out;
+  bottom: calc((-40px - v-bind(height)));
+  transition: bottom 0.25s ease-in-out;
 }
 
 .container.open {
-  transform: translateY(0px);
+  bottom: 0;
 }
 
 .top {

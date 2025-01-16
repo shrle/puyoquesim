@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="popup-button-container">
     <div
       ref="buttonContainerElement"
       class="button-container"
@@ -134,6 +134,9 @@ export default {
 </script>
 
 <style scoped>
+.popup-button-container {
+  position: relative;
+}
 .button-container {
   width: fit-content;
   height: fit-content;

@@ -3,12 +3,18 @@
 </template>
 
 <style>
-@layer util;
+@import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+@layer base, util;
 
 @layer base {
   * {
+    box-sizing: border-box;
     margin: 0px;
     padding: 0px;
+    -webkit-user-select: none; /* Safari */
+    user-select: none;
+    font-family: "Roboto", sans-serif;
   }
 }
 
@@ -42,7 +48,8 @@ button.icon-button:active {
 button.text-button {
   background-color: #dddddd;
   color: #000000;
-  width: 120px;
+  min-width: 120px;
+  padding: 5px 20px;
   height: 30px;
   border-radius: 18px;
   border: transparent 2px solid;
