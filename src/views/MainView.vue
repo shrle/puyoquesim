@@ -217,8 +217,6 @@
         @set-map-color="setMapColor"
         @set-seed-setting="setSeedSetting"
       ></SeedsMaps>
-
-      <FooterDrawer ref="FooterDrawer" height="90vh" />
     </main>
   </div>
 
@@ -235,7 +233,6 @@ import Route from "@/js/route";
 import PuyoqueCanvas from "@/js/puyoquecanvas.js";
 import PopupButton from "@/components/PopupButton.vue";
 import ParseScreenShot from "@/components/ParseScreenShot.vue";
-import FooterDrawer from "@/components/FooterDrawer.vue";
 import ColorPalette from "@/components/ColorPalette.vue";
 import SeedsMaps from "@/components/SeedsMaps.vue";
 import seeds from "@/js/seeds-settings";
@@ -256,7 +253,6 @@ export default {
   components: {
     PopupButton,
     ParseScreenShot,
-    FooterDrawer,
     ColorPalette,
     SeedsMaps,
   },
