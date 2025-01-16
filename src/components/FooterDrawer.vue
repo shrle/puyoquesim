@@ -50,7 +50,7 @@ export default {
   margin: auto;
   gap: 0;
 
-  bottom: calc((-40px - v-bind(height)));
+  bottom: calc(-40px - v-bind(height));
   transition: bottom 0.25s ease-in-out;
 }
 
