@@ -262,21 +262,21 @@
       </li>
       <li>
         <p>
-          下の<button class="icon-button">
+          <button class="icon-button">
             <span class="material-symbols-outlined"> screenshot </span></button
           >からスクリーンショットを読み込み盤面を再現できます
         </p>
       </li>
       <li>
         <p>
-          下の<button class="icon-button">
+          <button class="icon-button">
             <span class="material-symbols-outlined"> palette </span></button
           >から色の塗替えができます
         </p>
       </li>
       <li>
         <p>
-          下の<button class="icon-button">
+          <button class="icon-button">
             <span class="material-symbols-outlined">
               transition_dissolve
             </span></button
@@ -838,10 +838,10 @@ export default {
   }
 
   .about {
-    width: 90%;
-    height: 60%;
     max-width: 1000px;
-    padding: 50px;
+    width: 95%;
+    height: 60%;
+    padding: 10px;
 
     background-color: #f8f8f8;
     color: #333333;
@@ -879,11 +879,14 @@ export default {
   }
 
   .about ul {
-    padding-left: 40px;
-    list-style: disc;
+    /* padding-left: 40px;
+    list-style: disc; */
+    padding: 0;
+    list-style: none;
   }
   .about li {
-    margin-bottom: 10px;
+    height: 40px;
+    margin-bottom: 20px;
   }
 
   .about li p {
@@ -915,13 +918,31 @@ export default {
     visibility: hidden;
   }
 
+  @media screen and (max-width: 750px) {
+    .about * {
+      font-size: 0.8rem;
+    }
+    .about strong {
+      font-size: 1.2rem;
+      color: #000000;
+    }
+  }
+  @media screen and (max-width: 560px) {
+    .about {
+      width: 100%;
+    }
+    /* .about ul {
+      padding-left: 15px;
+    } */
+  }
+
   .help-button-container {
     width: 40px;
     height: 40px;
     position: fixed;
     right: 5px;
     bottom: 5px;
-    z-index: 9;
+    z-index: 11;
   }
 
   @media screen and (max-width: 400px) {
