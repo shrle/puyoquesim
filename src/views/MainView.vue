@@ -1,7 +1,7 @@
 <template>
   <div id="main">
     <main>
-      <h1>ぷよクエ練習シミュレータ</h1>
+      <h1>ぷよクエ連鎖計算シミュレータ</h1>
       <article class="rate-container">
         <div
           v-for="(mag, index) in colorMag"
@@ -21,7 +21,7 @@
         </button>
       </div>
       <!-- canvas -->
-      <div id="cv"></div>
+      <div id="cv" ref="canvasContainer"></div>
 
       <article class="replay-container">
         <!--リプレイ ボタン-->
@@ -225,6 +225,76 @@
     @set-puyo-map="setPuyoMap"
     ref="ParseScreenShot"
   ></ParseScreenShot>
+
+  <!-- <div class="tutorial" ref="tutorialContainer">
+    <div class="stage-1 popup">
+      <strong>ぷよクエ連鎖計算シミュレータにようこそ</strong>
+      <p>
+        まずは<img
+          :src="puyoImgUrl(5)"
+          alt="heartbox"
+          style="height: 20px"
+        />をなぞってみよう
+      </p>
+    </div>
+  </div> -->
+
+  <div class="overlay" v-if="!isAboutRead"></div>
+
+  <section class="about" :class="{ hide: isAboutRead }">
+    <p>これは<strong>ぷよクエの連鎖計算</strong>を助けるアプリです！</p>
+    <h3>機能</h3>
+    <ul>
+      <li>
+        <p>
+          <button class="icon-button">
+            <span class="material-symbols-outlined"> keyboard_tab_rtl </span>
+          </button>
+          <button class="icon-button">
+            <span class="material-symbols-outlined"> arrow_back </span>
+          </button>
+          <button class="icon-button">
+            <span class="material-symbols-outlined"> arrow_forward </span>
+          </button>
+
+          リプレイボタンで1連鎖毎に盤面の状態を確認できます
+        </p>
+      </li>
+      <li>
+        <p>
+          下の<button class="icon-button">
+            <span class="material-symbols-outlined"> screenshot </span></button
+          >からスクリーンショットを読み込み盤面を再現できます
+        </p>
+      </li>
+      <li>
+        <p>
+          下の<button class="icon-button">
+            <span class="material-symbols-outlined"> palette </span></button
+          >から色の塗替えができます
+        </p>
+      </li>
+      <li>
+        <p>
+          下の<button class="icon-button">
+            <span class="material-symbols-outlined">
+              transition_dissolve
+            </span></button
+          >から連鎖のタネを再現できます
+        </p>
+      </li>
+    </ul>
+
+    <button class="text-button" @click="isAboutRead = true">分かった！</button>
+  </section>
+
+  <div class="help-button-container">
+    <button class="icon-button">
+      <span class="material-symbols-outlined" @click="isAboutRead = false">
+        help
+      </span>
+    </button>
+  </div>
 </template>
 
 <script>
@@ -329,14 +399,14 @@ export default {
       selectNextColor: -1,
 
       map: [
-        [0, 1, 2, 3, 4, 5, 6, 7],
-        [0, 1, 2, 3, 4, 5, 6, 7],
-        [0, 1, 2, 3, 4, 5, 6, 7],
-        [0, 1, 2, 3, 4, 5, 6, 7],
-        [0, 1, 2, 3, 4, 5, 6, 7],
-        [0, 1, 2, 3, 4, 5, 6, 7],
+        [0, 4, 4, 2, 4, 0, 2, 0],
+        [0, 2, 3, 4, 4, 0, 2, 5],
+        [4, 2, 3, 2, 5, 5, 5, 5],
+        [3, 3, 2, 2, 4, 1, 0, 0],
+        [1, 1, 1, 4, 4, 0, 1, 1],
+        [0, 0, 0, 2, 3, 0, 0, 1],
       ],
-      nextPuyos: [0, 1, 2, 3, 4, 0, 1, 2],
+      nextPuyos: [0, 0, 0, 0, 0, 0, 0, 0],
 
       isShowPalette: false,
       isSkipSsSetting: false,
@@ -353,6 +423,8 @@ export default {
       ],
 
       seedMaps: [],
+
+      isAboutRead: false,
     };
   },
   computed: {
@@ -590,8 +662,6 @@ export default {
       if (color === -1) this.setParam();
     },
 
-    changeSeeds() {},
-
     puyoImgUrl(puyoIndex) {
       var puyoImg = [
         "./img/red.webp",
@@ -646,8 +716,13 @@ export default {
 
       const fieldCode = data[0];
       const field = Field.fromCode(fieldCode);
+
       if (!field) return;
       this.field = field;
+
+      const nextPuyos = field.cloneNextPuyos();
+      const map = field.cloneMap();
+      this.addHistory(map, nextPuyos, new Route(), [0, 0, 0, 0, 0], 0);
 
       /*
        * settingCode = selectNextColor, paintColor, erasePuyoLength, selectRouteLengthMax, doujiCorrection, chainCorrection
@@ -680,6 +755,11 @@ export default {
         i++;
       }
     },
+
+    // setPosition() {
+    //   const pos = this.$refs.canvasContainer.getBoundingClientRect();
+    //   this.$refs.tutorialContainer.pos.bottom;
+    // },
   },
 };
 </script>
@@ -742,6 +822,108 @@ export default {
     align-items: center;
     position: relative;
   }
+
+  .overlay {
+    width: 100vw;
+    height: 100vh;
+
+    background-color: #00000080;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .about {
+    width: 90%;
+    height: 60%;
+    max-width: 1000px;
+    padding: 50px;
+
+    background-color: #f8f8f8;
+    color: #333333;
+    font-weight: bolder;
+    border-radius: 15px;
+
+    position: fixed;
+    z-index: 101;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+
+    /* top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
+    transition: all 1s ease-in-out;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 20px;
+  }
+  .about * {
+    transition: opacity 1s ease-in-out 0.5s;
+    opacity: 100;
+
+    font-size: 1rem;
+  }
+
+  .about strong {
+    font-size: 1.5rem;
+    color: #000000;
+  }
+
+  .about ul {
+    padding-left: 40px;
+    list-style: disc;
+  }
+  .about li {
+    margin-bottom: 10px;
+  }
+
+  .about li p {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .about.hide {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+
+    z-index: -1;
+    top: auto;
+    left: auto;
+    bottom: 5px;
+    right: 5px;
+    transform: translate(0, 0);
+  }
+
+  .about.hide * {
+    font-size: 0;
+    width: 0px;
+    height: 0px;
+    opacity: 0;
+    /* display: none; */
+    visibility: hidden;
+  }
+
+  .help-button-container {
+    width: 40px;
+    height: 40px;
+    position: fixed;
+    right: 5px;
+    bottom: 5px;
+    z-index: 9;
+  }
+
   @media screen and (max-width: 400px) {
     main {
       width: 100%;
@@ -842,6 +1024,16 @@ export default {
     .tools {
       width: 100%;
     }
+  }
+
+  .tutorial {
+    position: fixed;
+    top: v-bind(tutorialPosTop);
+  }
+
+  .tutorial > * {
+    width: fit-content;
+    height: fit-content;
   }
 
   .rate-container {
