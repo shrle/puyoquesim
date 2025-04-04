@@ -9,20 +9,17 @@
     </p>
     <article class="seeds-maps">
       <div class="seed-picker-container">
+        <p class="chance-id-input">
+          <label for="chance-id">大連鎖チャンスID</label>
+          <input type="text" id="chance-id" v-model="chanceMap" />
+          <button class="text-button" @click="pickChanceMap">読み込む</button>
+        </p>
+
         <select class="seed-picker" const v-on:change="changeSeed">
           <option v-for="seed in seedList" :value="seed.id" :key="seed.id">
             {{ seed.name }}
           </option>
         </select>
-
-        <p class="chance-id-input">
-          <label for="chance-id">大連鎖チャンスID</label>
-          <input type="text" id="chance-id" v-model="chanceMap" /><button
-            @click="pickChanceMap"
-          >
-            読み込む
-          </button>
-        </p>
       </div>
 
       <section class="maps-container">
@@ -149,20 +146,29 @@ export default {
 .seed-picker-container {
   max-width: 1000px;
   width: 100%;
-  height: 40px;
+  height: 90px;
   padding-left: 10px;
   padding-top: 10px;
 
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 10px;
 }
 .chance-id-input {
+  height: 40px;
   display: flex;
   font-display: row;
   justify-content: center;
   align-items: center;
-  gap: 3px;
+  gap: 10px;
+}
+
+.chance-id-input input {
+  height: 40px;
+  width: 60px;
+  padding-left: 5px;
+  border-radius: 5px;
+  border: 2px solid #aaaaaa;
 }
 
 .seed-picker {

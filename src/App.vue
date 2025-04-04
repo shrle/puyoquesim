@@ -18,6 +18,11 @@
   }
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 button.icon-button {
   width: 40px;
   height: 40px;
@@ -48,11 +53,15 @@ button.icon-button:active {
 button.text-button {
   background-color: #dddddd;
   color: #000000;
+  font-weight: bolder;
   min-width: 120px;
-  padding: 5px 20px;
   height: 30px;
+  padding: 5px 20px;
   border-radius: 18px;
   border: transparent 2px solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 button.text-button.primary {

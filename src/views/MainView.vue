@@ -1,7 +1,7 @@
 <template>
   <div id="main">
     <main>
-      <h1>ぷよクエ連鎖計算シミュレータ</h1>
+      <h1><a href="./">ぷよクエ連鎖計算シミュレータ</a></h1>
       <article class="rate-container">
         <div
           v-for="(mag, index) in colorMag"
@@ -471,9 +471,6 @@ export default {
       this.chainCorrection = s.chainCorrection;
       this.paintColor = s.selectRouteBehavior === "delete" ? -1 : s.color;
     },
-    setChanceMap(id) {
-      this.field.codeToMap(chanceMapList[id][0]);
-    },
     adjustSsSettings() {
       this.isSkipSsSetting = false;
       setTimeout(() => {
@@ -491,6 +488,10 @@ export default {
       this.field.setMapPuyo(map);
 
       this.addHistory(map, nextPuyos, new Route(), [0, 0, 0, 0, 0], 0);
+      this.setParam();
+    },
+    setChanceMap(id) {
+      this.field.codeToMap(chanceMapList[id][0]);
       this.setParam();
     },
     getSelectRoute: function (selectRoute) {
