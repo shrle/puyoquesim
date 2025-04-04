@@ -234,7 +234,7 @@ export default class PuyoqueCanvas {
         //sprite.cursor = "pointer";
 
         const c = this.puyoContainers[y][x];
-        let hitAreaScale = 0.8;
+        let hitAreaScale = 0.5;
         let width = sprite.width * hitAreaScale;
         let height = sprite.height * hitAreaScale;
         let hitX = (sprite.width - width) / 2;

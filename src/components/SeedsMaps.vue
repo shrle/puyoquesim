@@ -1,5 +1,12 @@
 <template>
   <FooterDrawer ref="FooterDrawer" @close="close" height="90vh">
+    <p
+      class="warn"
+      :class="{ show: warnMessage != '' }"
+      @click="warnMessage = ''"
+    >
+      {{ warnMessage }}
+    </p>
     <article class="seeds-maps">
       <div class="seed-picker-container">
         <select class="seed-picker" const v-on:change="changeSeed">
@@ -7,6 +14,15 @@
             {{ seed.name }}
           </option>
         </select>
+
+        <p class="chance-id-input">
+          <label for="chance-id">大連鎖チャンスID</label>
+          <input type="text" id="chance-id" v-model="chanceMap" /><button
+            @click="pickChanceMap"
+          >
+            読み込む
+          </button>
+        </p>
       </div>
 
       <section class="maps-container">
@@ -28,12 +44,13 @@
 import FooterDrawer from "./FooterDrawer.vue";
 import PuyoMap from "./PuyoMap.vue";
 import seeds from "@/js/seeds-settings";
+import chanceMapList from "@/js/chance-list";
 import { ref } from "vue";
 
 export default {
   name: "SeedsMaps",
   components: { PuyoMap, FooterDrawer },
-  emits: ["setMapColor", "setSeedSetting"],
+  emits: ["setMapColor", "setSeedSetting", "setChanceMap"],
   props: {},
   data() {
     return {
@@ -52,6 +69,8 @@ export default {
         { id: "paintGreen", name: "緑ぬりかえ" },
         //{ id: "", name: "" },
       ],
+      chanceMap: "",
+      warnMessage: "",
     };
   },
   mounted() {},
@@ -63,6 +82,18 @@ export default {
     pickMap(map) {
       this.$emit("setMapColor", map);
       this.$emit("setSeedSetting", this.pickedSeedId);
+      this.$refs.FooterDrawer.close();
+    },
+    pickChanceMap() {
+      if (!chanceMapList[this.chanceMap]) {
+        this.warnMessage = "このIDはありません";
+        setTimeout(() => {
+          this.warnMessage = "";
+        }, 1000 * 6);
+        return;
+      }
+
+      this.$emit("setChanceMap", this.chanceMap);
       this.$refs.FooterDrawer.close();
     },
     changeSeed(e) {
@@ -80,27 +111,66 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
+
+.warn {
+  width: fit-content;
+  height: 40px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  background-color: #e9e912;
+  font-weight: bolder;
+
+  position: fixed;
+  z-index: 10001;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  visibility: hidden;
+}
+
+.warn.show {
+  visibility: visible;
+}
+
 .seeds-maps {
   width: 100%;
   height: 90vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-content: start;
+  align-items: center;
   gap: 10px;
 }
 
 .seed-picker-container {
+  max-width: 1000px;
   width: 100%;
   height: 40px;
   padding-left: 10px;
   padding-top: 10px;
+
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
 }
+.chance-id-input {
+  display: flex;
+  font-display: row;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
 .seed-picker {
   width: 200px;
 }
 
 .maps-container {
+  max-width: 1000px;
   width: 100%;
   height: calc(90vh - 40px);
   display: flex;

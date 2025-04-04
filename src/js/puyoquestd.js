@@ -653,7 +653,51 @@ class Field {
   }
 
   /**
-   * Field.toCode()から渡された文字列からFieldを生成する
+   * Field.toCode()から返された文字列から盤面を設定する
+   *
+   * @param {string} code
+   */
+  codeToMap(code) {
+    if (typeof code !== "string") return null;
+
+    const data = code.split("_");
+    if (data.length !== 2) return null;
+
+    const nextChars = data[0];
+    const mapChars = data[1];
+
+    const width = nextChars.length;
+
+    if (mapChars.length % width !== 0) return null;
+
+    const height = mapChars.length / width;
+
+    /** @type {Puyo[]} ネクストぷよ */
+    let nexts = [];
+    for (const n of nextChars) {
+      nexts.push(Puyo.fromChar(n));
+    }
+
+    /** @type {Puyo[][]} 盤面のぷよ */
+    let map = [];
+    let i = 0;
+    for (let y = 0; y < height; y++) {
+      let line = [];
+      for (let x = 0; x < width; x++) {
+        const puyo = Puyo.fromChar(mapChars[i]);
+        line.push(puyo);
+        i++;
+      }
+      map.push(line);
+    }
+
+    this.setNextPuyos(nexts);
+    this.setMapPuyo(map);
+  }
+
+  /**
+   * Field.toCode()から返された文字列からFieldを生成する
+   *
    * @param {string} code
    * @returns {Field | null}
    */
@@ -678,8 +722,6 @@ class Field {
       nexts.push(Puyo.fromChar(n));
     }
 
-    console.log("nexts: ");
-    console.dir(nexts);
     /** @type {Puyo[][]} 盤面のぷよ */
     let map = [];
     let i = 0;

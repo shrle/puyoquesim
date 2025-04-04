@@ -137,24 +137,24 @@
         <div>
           <select name="doujiCorrection" v-model="doujiCorrection">
             <option
-              v-for="(item, index) in squareLength * 2"
-              :value="index / 2 + 1"
+              v-for="(item, index) in squareLength * 2 + 1"
+              :value="index / 2"
               :key="index"
             >
-              {{ index / 2 + 1 }}
+              {{ index / 2 }}
             </option>
           </select>
         </div>
 
-        <label for="chainCorrection"> 連鎖倍率 </label>
+        <label for="chainCorrection"> 連鎖係数 </label>
         <div>
           <select name="chainCorrection" v-model="chainCorrection">
             <option
-              v-for="(item, index) in squareLength * 2"
-              :value="index / 2 + 1"
+              v-for="(item, index) in squareLength * 2 + 1"
+              :value="index / 2"
               :key="index"
             >
-              {{ index / 2 + 1 }}
+              {{ index / 2 }}
             </option>
           </select>
         </div>
@@ -216,6 +216,7 @@
         ref="SeedsMaps"
         @set-map-color="setMapColor"
         @set-seed-setting="setSeedSetting"
+        @set-chance-map="setChanceMap"
       ></SeedsMaps>
     </main>
   </div>
@@ -306,6 +307,7 @@ import ParseScreenShot from "@/components/ParseScreenShot.vue";
 import ColorPalette from "@/components/ColorPalette.vue";
 import SeedsMaps from "@/components/SeedsMaps.vue";
 import seeds from "@/js/seeds-settings";
+import chanceMapList from "@/js/chance-list";
 import { numToUrlSafeChar, UrlSafeCharToNum } from "@/js/url-safe-char-convert";
 
 class History {
@@ -328,7 +330,6 @@ export default {
   },
   setup() {},
   async mounted() {
-    console.log("resource dir: " + process.env.VUE_APP_RESOURCE_PATH);
     const screenWidth = window.screen.availWidth;
     if (screenWidth < 400) {
       this.canvasWidth = screenWidth;
@@ -469,6 +470,9 @@ export default {
       this.erasePuyoLength = s.erasePuyoLength;
       this.chainCorrection = s.chainCorrection;
       this.paintColor = s.selectRouteBehavior === "delete" ? -1 : s.color;
+    },
+    setChanceMap(id) {
+      this.field.codeToMap(chanceMapList[id][0]);
     },
     adjustSsSettings() {
       this.isSkipSsSetting = false;
@@ -702,7 +706,6 @@ export default {
       return code;
     },
     setParam() {
-      console.log("setParam");
       let code = this.field.toCode();
       code += "-";
       code += this.settingsToCode();

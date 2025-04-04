@@ -172,7 +172,6 @@ export default {
       this.$refs.PopupButton.closePopup();
     },
     showBaseField() {
-      console.log("showBaseField");
       this.isShownBaseField = true;
 
       this.bufField.copy(this.field);
