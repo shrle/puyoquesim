@@ -244,6 +244,11 @@
 
   <section class="about" :class="{ hide: isAboutRead }">
     <p>これは<strong>ぷよクエの連鎖計算</strong>を助けるアプリです！</p>
+    <p class="link-blue">
+      <a href="https://www.youtube.com/watch?v=Sw7jyn5aW_I" target="_blank"
+        >使い方を動画で見る</a
+      >
+    </p>
     <h3>機能</h3>
     <ul>
       <li>
@@ -869,6 +874,10 @@ export default {
     justify-content: center;
     align-items: center;
     row-gap: 20px;
+  }
+
+  .about .link-blue {
+    color: #0000dd;
   }
   .about * {
     transition: opacity 1s ease-in-out 0.5s;
