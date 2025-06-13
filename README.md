@@ -1,4 +1,4 @@
-#ぷよクエ連鎖計算シミュレータ
+# ぷよクエ連鎖計算シミュレータ
 
 https://puyosim.com/new/
 
@@ -14,7 +14,7 @@ https://puyosim.com/new/
 
 ### 使い方
 
-以下が基本的な使い方のデモ動画です。
+以下が基本的な使い方のデモ動画です。  
 https://www.youtube.com/watch?v=Sw7jyn5aW_I
 
 ### 必要な環境
