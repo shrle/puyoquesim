@@ -88,23 +88,21 @@
           </select>
         </div>
 
+        <label for="nextnextchange">サタン＆エコロ</label>
+        <div>
+          <input
+            type="checkbox"
+            id="nextnextchange"
+            v-model="isNextnextchange"
+          />
+        </div>
+
         <label for="paintColor"> なぞり </label>
         <div>
           <select name="paintColor" v-model="paintColor">
             <option value="-1">消す</option>
             <template v-for="(item, index) in colorName" :key="index">
               <option :value="index - 1" v-if="index > 0">
-                {{ item }}
-              </option>
-            </template>
-          </select>
-        </div>
-
-        <label for="atackColor"> 攻撃色 </label>
-        <div>
-          <select name="atackColor" v-model="atackColor">
-            <template v-for="(item, index) in colorName">
-              <option :value="index - 1" v-if="index > 0" :key="index">
                 {{ item }}
               </option>
             </template>
@@ -361,6 +359,8 @@ export default {
     this.canvas.addChainStartListener(this.chainStart);
     this.canvas.addChainListener(this.chain);
     this.canvas.addChainEndListener(this.chainEnd);
+    this.canvas.addAllClearListener(this.allClear);
+
     this.selectRoute = this.canvas.selectRoute;
     this.canvas.passSelectRouteLengthMax = this.passSelectRouteLengthMax;
     this.canvas.setErasePuyoLength(this.erasePuyoLength);
@@ -413,7 +413,8 @@ export default {
         [0, 0, 0, 2, 3, 0, 0, 1],
       ],
       nextPuyos: [0, 0, 0, 0, 0, 0, 0, 0],
-
+      isNextnextchange: false,
+      usedNextnextchange: false,
       isShowPalette: false,
       isSkipSsSetting: false,
 
@@ -538,6 +539,7 @@ export default {
     },
 
     chainStart: function (selectRoute) {
+      this.usedNextnextchange = false;
       this.colorMag = [0, 0, 0, 0, 0, 0];
       this.deletePrismNum = 0;
       this.lastMap = this.field.cloneMap();
@@ -589,6 +591,25 @@ export default {
         this.colorMag,
         this.chainNum
       );
+    },
+
+    allClear() {
+      // ネクネク変化が使用済みの場合はキャンセル
+      if (this.usedNextnextchange) return;
+      this.usedNextnextchange = true;
+      //TODO: ネクストぷよを消す
+      this.field.nextClear();
+      //ネクネクを設定する
+
+      let map = [
+        [2, 2, 0, 0, 0, 0, 1, 1],
+        [2, 2, 3, 3, 4, 4, 1, 1],
+        [3, 3, 4, 4, 3, 3, 4, 4],
+        [4, 4, 1, 1, 2, 2, 3, 3],
+        [1, 1, 3, 3, 4, 4, 2, 2],
+        [3, 3, 0, 0, 0, 0, 4, 4],
+      ];
+      this.field.setNextNextMapColor(map);
     },
 
     addHistory(map, nextPuyos, selectRoute, colorMag, chainNum) {
@@ -1007,7 +1028,7 @@ export default {
     width: 100%;
     margin-top: 10px;
     display: grid;
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 180px 1fr;
     row-gap: 10px;
   }
   main .settings > * {

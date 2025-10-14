@@ -289,10 +289,12 @@ class Field {
     /** @type {Puyo[]} ネクストぷよの情報 */
     this.next = [];
 
+    /** @type {Puyo[][]} ネクネクのぷよの情報 */
+    this.nextnext = [];
+
     this.mapRecord = [];
 
-    this.mapClear();
-    this.nextClear();
+    this.clear();
     this.floatingPuyo = [];
 
     /**
@@ -352,9 +354,21 @@ class Field {
     }
   }
 
+  nextnextClear() {
+    this.nextnext = [];
+
+    for (let y = 0; y < this.height; y++) {
+      this.nextnext[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        this.nextnext[y][x] = new Puyo(PuyoqueStd.puyoColor.blank, false);
+      }
+    }
+  }
+
   clear() {
     this.mapClear();
     this.nextClear();
+    this.nextnextClear();
 
     this.mapRecord = [];
   }
@@ -489,6 +503,22 @@ class Field {
     this.next[x].chance = isChance;
     this.next[x].plus = isPlus;
   }
+
+  setNextNextPuyo(x, y, color, isChance, isPlus) {
+    //TODO: 範囲外チェック
+    this.nextnext[y][x].color = color;
+    this.nextnext[y][x].chance = isChance;
+    this.nextnext[y][x].plus = isPlus;
+  }
+
+  setNextNextMapColor(map) {
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        this.setNextNextPuyo(x, y, map[y][x], false, false);
+      }
+    }
+  }
+
   getNextPuyo(x) {
     if (!this.isRangeField(x, 0)) return null;
     return this.next[x];
@@ -506,6 +536,10 @@ class Field {
   getNextPlus(x) {
     if (!this.isRangeField(x, 0)) return false;
     return this.next[x].plus;
+  }
+
+  getNextNextPuyo(x, y) {
+    return this.nextnext[y][x];
   }
 
   setAllNextColor(color) {
@@ -553,6 +587,10 @@ class Field {
 
   deleteNext(x) {
     this.setNextPuyo(x, PuyoqueStd.puyoColor.blank, false, false);
+  }
+
+  deleteNextNext(x, y) {
+    this.setNextNextPuyo(x, y, PuyoqueStd.puyoColor.blank, false, false);
   }
 
   puyoClone(x, y) {
@@ -1052,6 +1090,71 @@ class Field {
     this.floatingPuyo = this.getFloatingNext();
   }
 
+  /**
+   * 浮いているネクネクを含めたネクストぷよの情報を返す
+   * @returns {FloatingPuyo[]}
+   */
+  getFloatingNextNext() {
+    console.log("getFloatingNextNext");
+    let puyos = [];
+    let blankNum = 0;
+
+    // 列ごとに処理する
+    for (let x = 0; x < this.width; x++) {
+      // 列の空マスの数をカウント
+      blankNum = 0;
+      for (let y = this.height - 1; y >= 0; y--) {
+        if (this.isBlank(x, y)) blankNum++;
+      }
+
+      // 空マスがないのでネクストは降らない
+      if (blankNum === 0) continue;
+
+      /** ネクストぷよの深さ ネクストぷよがある場合 -1 で その次のネクネクが -2と深くなっていく、ただしネクストがない場合は最初のネクネクが-1 */
+      let depth = -1;
+
+      if (!this.isNextBlank(x)) {
+        // ネクストぷよがある場合
+        let puyo = this.getNextPuyo(x);
+        puyos.push(
+          new FloatingPuyo(
+            x,
+            depth,
+            puyo.color,
+            puyo.chance,
+            puyo.plus,
+            blankNum
+          )
+        );
+        depth--;
+      }
+
+      for (let y = this.height - 1; y >= 0; y--) {
+        if (blankNum + depth < 0) break;
+
+        let puyo = this.getNextNextPuyo(x, y);
+        // ネクネクが存在しないのでこの列はスキップ
+        if (puyo.color === PuyoqueStd.puyoColor.blank) break;
+        puyos.push(
+          new FloatingPuyo(
+            x,
+            depth,
+            puyo.color,
+            puyo.chance,
+            puyo.plus,
+            blankNum
+          )
+        );
+        depth--;
+      }
+    }
+    return puyos;
+  }
+
+  holdFoatingNextNext() {
+    this.floatingPuyo = this.getFloatingNextNext();
+  }
+
   deleteFoatingNexts() {
     let blankNum = 0;
     for (let x = 0; x < this.width; x++) {
@@ -1063,6 +1166,30 @@ class Field {
       //let color = this.getNextColor(x);
       if (!this.isNextBlank(x)) {
         this.deleteNext(x);
+      }
+    }
+  }
+
+  deleteFoatingNextNext() {
+    let blankNum = 0;
+    for (let x = 0; x < this.width; x++) {
+      blankNum = 0;
+      for (let y = this.height - 1; y >= 0; y--) {
+        if (this.isBlank(x, y)) blankNum++;
+      }
+      if (blankNum === 0) continue;
+      //let color = this.getNextColor(x);
+
+      let depth = -1;
+      if (!this.isNextBlank(x)) {
+        this.deleteNext(x);
+        depth--;
+      }
+
+      for (let y = this.height - 1; y >= 0; y--) {
+        if (blankNum + depth <= 0) break;
+        this.deleteNextNext(x, y);
+        depth--;
       }
     }
   }

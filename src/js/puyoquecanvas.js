@@ -87,6 +87,7 @@ export default class PuyoqueCanvas {
     this.selectRouteListeners = [];
     this.chainStartListeners = [];
     this.chainListeners = [];
+    this.allClearListeners = [];
     this.chainEndListeners = [];
 
     /**
@@ -517,6 +518,9 @@ export default class PuyoqueCanvas {
   addChainEndListener(func) {
     this.chainEndListeners.push(func);
   }
+  addAllClearListener(func) {
+    this.allClearListeners.push(func);
+  }
 
   chainStart() {
     for (const func of this.chainStartListeners) {
@@ -542,7 +546,7 @@ export default class PuyoqueCanvas {
 
     this.setFloatingNext();
     this.field.holdFoatingNexts();
-    this.field.deleteFoatingNexts();
+    this.field.deleteFoatingNextNext();
     if (this.floatingPuyoSprites.length > 0) return;
 
     this.chainEnd();
@@ -610,14 +614,33 @@ export default class PuyoqueCanvas {
       this.field.holdFloatingPuyo();
       this.field.deleteFoatingPuyo();
       if (this.floatingPuyoSprites.length === 0) {
+        // 落下中のぷよがなくなった
+
+        if (this.field.isAllClear()) {
+          // 全消しであった場合
+          for (const func of this.allClearListeners) {
+            // 全消しリスナーを呼び出す
+            func();
+          }
+        }
+        // ネクストぷよを落とす
         this.setFloatingNext();
-        this.field.holdFoatingNexts();
-        this.field.deleteFoatingNexts();
+        this.field.holdFoatingNextNext();
+        this.field.deleteFoatingNextNext();
       }
     } else {
+      if (this.field.isAllClear()) {
+        // 全消しであった場合
+        for (const func of this.allClearListeners) {
+          // 全消しリスナーを呼び出す
+          func();
+        }
+      }
+
+      // ネクストぷよを落とす
       this.setFloatingNext();
-      this.field.holdFoatingNexts();
-      this.field.deleteFoatingNexts();
+      this.field.holdFoatingNextNext();
+      this.field.deleteFoatingNextNext();
     }
 
     if (this.floatingPuyoSprites.length === 0) {
@@ -666,7 +689,7 @@ export default class PuyoqueCanvas {
   }
 
   setFloatingNext() {
-    let puyos = this.field.getFloatingNext();
+    let puyos = this.field.getFloatingNextNext();
     if (puyos.length === 0) {
       return;
     }
