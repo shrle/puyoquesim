@@ -594,6 +594,8 @@ export default {
     },
 
     allClear() {
+      // ネクネク変化を行わない場合
+      if (!this.isNextnextchange) return;
       // ネクネク変化が使用済みの場合はキャンセル
       if (this.usedNextnextchange) return;
       this.usedNextnextchange = true;
