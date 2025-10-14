@@ -88,12 +88,17 @@
           </select>
         </div>
 
+        <label for="nextplus">ネクストプラス</label>
+        <div>
+          <input type="checkbox" id="nextplus" v-model="isNextPlus" />
+        </div>
+
         <label for="nextnextchange">サタン＆エコロ</label>
         <div>
           <input
             type="checkbox"
             id="nextnextchange"
-            v-model="isNextnextchange"
+            v-model="isNextNextChange"
           />
         </div>
 
@@ -413,7 +418,8 @@ export default {
         [0, 0, 0, 2, 3, 0, 0, 1],
       ],
       nextPuyos: [0, 0, 0, 0, 0, 0, 0, 0],
-      isNextnextchange: false,
+      isNextNextChange: false,
+      isNextPlus: false,
       usedNextnextchange: false,
       isShowPalette: false,
       isSkipSsSetting: false,
@@ -542,6 +548,9 @@ export default {
       this.usedNextnextchange = false;
       this.colorMag = [0, 0, 0, 0, 0, 0];
       this.deletePrismNum = 0;
+      if (this.isNextPlus) {
+        this.field.setNextsPlus();
+      }
       this.lastMap = this.field.cloneMap();
       this.lastNextPuyos = this.field.cloneNextPuyos();
       this.replay = [];
@@ -595,7 +604,7 @@ export default {
 
     allClear() {
       // ネクネク変化を行わない場合
-      if (!this.isNextnextchange) return;
+      if (!this.isNextNextChange) return;
       // ネクネク変化が使用済みの場合はキャンセル
       if (this.usedNextnextchange) return;
       this.usedNextnextchange = true;

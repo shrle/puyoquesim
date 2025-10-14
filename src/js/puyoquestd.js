@@ -497,6 +497,18 @@ class Field {
     if (!this.isRangeField(x, 0)) return;
     this.next[x].color = color;
   }
+
+  setNextPlus(x) {
+    if (!this.isRangeField(x, 0)) return;
+    this.next[x].plus = true;
+  }
+
+  setNextsPlus() {
+    for (let x = 0; x < this.width; x++) {
+      this.setNextPlus(x);
+    }
+  }
+
   setNextPuyo(x, color, isChance, isPlus) {
     if (!this.isRangeField(x, 0)) return;
     this.next[x].color = color;
