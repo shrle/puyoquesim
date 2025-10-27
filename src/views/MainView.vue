@@ -275,7 +275,7 @@
     </div>
   </div> -->
 
-  <div class="overlay" v-if="!isAboutRead"></div>
+  <div class="overlay" v-if="!isAboutRead" @click="isAboutRead = true"></div>
 
   <section class="about" :class="{ hide: isAboutRead }">
     <p>これは<strong>ぷよクエの連鎖計算</strong>を助けるアプリです！</p>
