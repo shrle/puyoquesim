@@ -185,6 +185,28 @@ export default class PuyoqueCanvas {
     this.nextHeight = PuyoqueCanvas.origNextHeight * nextScale;
   }
 
+  initBoostAreaSprites() {
+    this.boostAreaContainer = new PIXI.Container();
+
+    let boostAreaSprites = [];
+    for (let y = 0; y < this.field.height; y++) {
+      let lineSprites = [];
+      for (let x = 0; x < this.field.width; x++) {
+        const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+        sprite.tint = 0xffffe0;
+        sprite.x = this.puyoWidth * x;
+        sprite.y = this.puyoHeight * y + this.nextHeight;
+        sprite.width = this.puyoWidth;
+        sprite.height = this.puyoHeight;
+
+        lineSprites.push(sprite);
+        this.boostAreaContainer.addChild(sprite);
+      }
+      boostAreaSprites.push(lineSprites);
+    }
+    this.boostAreaSprites = boostAreaSprites;
+  }
+
   initPuyoContainers() {
     this.puyoContainers = [];
     for (let y = 0; y < this.field.height; y++) {
@@ -371,6 +393,7 @@ export default class PuyoqueCanvas {
     }
 
     this.calcPuyoRect();
+    this.initBoostAreaSprites();
     this.initPuyoContainers();
     this.initPuyoSprites();
     this.initPlusSprites();
@@ -380,6 +403,7 @@ export default class PuyoqueCanvas {
     this.initTouchContainer();
 
     this.container.addChild(
+      this.boostAreaContainer,
       this.fieldContainer,
       this.selectedPuyoContainer,
       this.selectGraph
@@ -529,6 +553,8 @@ export default class PuyoqueCanvas {
 
     this.isChain = true;
     this.chainNum = 0;
+    this.deleteBoostAreaTotalCount = 0;
+
     if (this.paintColor === -1) this.deleteSelectPuyo();
     else {
       this.paintSelectPuyo();
@@ -555,7 +581,7 @@ export default class PuyoqueCanvas {
     this.isChain = false;
 
     for (const func of this.chainEndListeners) {
-      func(this.chainNum);
+      func(this.chainNum, this.deleteBoostAreaTotalCount);
     }
   }
 
@@ -574,31 +600,39 @@ export default class PuyoqueCanvas {
     let deleteHeartNum = 0;
     let deletePrismNum = 0;
     let deletePuyoNum = 0;
+    let deleteBoostAreaCount = 0;
+
     let deleteColorList = [];
 
     this.field.searchLinkPuyos(targetLength, (points, color) => {
       chained = true;
+      deleteBoostAreaCount = 0;
       for (const point of points) {
         this.field.targetAround(point.x, point.y, (x, y, color) => {
           if (color === puyoColor.heart) {
             deleteHeartNum++;
+            if (this.field.isBoostArea(x, y)) deleteBoostAreaCount++;
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.prism) {
             deletePuyoNum++;
             deletePrismNum++;
+            if (this.field.isBoostArea(x, y)) deleteBoostAreaCount++;
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.ojama) {
             deletePuyoNum++;
+            if (this.field.isBoostArea(x, y)) deleteBoostAreaCount++;
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.kataPuyo) {
             this.field.setColor(x, y, puyoColor.ojamaChanging);
           }
         });
+        if (this.field.isBoostArea(point.x, point.y)) deleteBoostAreaCount++;
       }
       deleteColorList.push(color);
       const plusCount = this.field.countPointsToPlus(points);
       deletePuyoNum += points.length + plusCount;
       this.field.deletePuyos(points);
+      this.deleteBoostAreaTotalCount += deleteBoostAreaCount;
     });
     this.ojamaChangingToOjama();
 
@@ -729,6 +763,14 @@ export default class PuyoqueCanvas {
     }
   }
 
+  drawBoostArea() {
+    for (let y = 0; y < this.field.height; y++) {
+      for (let x = 0; x < this.field.width; x++) {
+        this.boostAreaSprites[y][x].visible = this.field.isBoostArea(x, y);
+      }
+    }
+  }
+
   drawField() {
     for (let y = 0; y < this.field.height; y++) {
       for (let x = 0; x < this.field.width; x++) {
@@ -807,6 +849,7 @@ export default class PuyoqueCanvas {
     }
     this.drawSelect();
     this.drawSelectedPaintPuyo();
+    this.drawBoostArea();
     this.drawField();
     this.drawFloatingPuyo();
   }

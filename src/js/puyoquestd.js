@@ -1,6 +1,7 @@
 import Point from "./point.js";
 import Queue from "./queue.js";
 import codeToPoint from "./code-to-point.js";
+import array2dInit from "./array2d-init.js";
 
 class Puyo {
   /**
@@ -248,6 +249,7 @@ class PuyoqueStd {
       erasePuyoLength
     ); // 同時消し倍率
     let chainMag = PuyoqueStd.getChainMag(chainNum, chainCorrection); // 連鎖倍率
+
     return doujiMag * chainMag;
   }
 
@@ -291,6 +293,9 @@ class Field {
 
     /** @type {Puyo[][]} ネクネクのぷよの情報 */
     this.nextnext = [];
+
+    this.boostAreaMap = [];
+    this.initBoostArea();
 
     this.mapRecord = [];
 
@@ -595,6 +600,28 @@ class Field {
       const p = codeToPoint[c];
       this.setColor(p.x, p.y, color);
     }
+  }
+
+  initBoostArea() {
+    this.boostAreaMap = array2dInit(this.width, this.height, false);
+  }
+  setBoostAreaFromCode(code) {
+    for (const c of code) {
+      const p = codeToPoint[c];
+      this.boostAreaMap[p.y][p.x] = true;
+    }
+  }
+  setBoostAreaFromCodes(codes) {
+    this.initBoostArea();
+    for (const code of codes) {
+      this.setBoostAreaFromCode(code);
+    }
+    console.dir(this.boostAreaMap);
+  }
+
+  isBoostArea(x, y) {
+    if (!this.isRangeField(x, y)) return false;
+    return this.boostAreaMap[y][x];
   }
 
   deleteNext(x) {

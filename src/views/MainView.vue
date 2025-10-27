@@ -2,23 +2,30 @@
   <div id="main">
     <main>
       <h1><a href="./">ぷよクエ連鎖計算シミュレータ</a></h1>
-      <article class="rate-container">
-        <div
-          v-for="(mag, index) in colorMag"
-          :class="colorClassName[index]"
-          :key="index"
-        >
-          {{ Math.round(mag * 100) / 100 }}
+
+      <div class="result-info">
+        <div class="rate-container">
+          <div
+            v-for="(mag, index) in colorMag"
+            :class="colorClassName[index]"
+            :key="index"
+          >
+            {{ Math.round(mag * 10) / 10 }}
+          </div>
         </div>
-      </article>
 
-      <div class="info">
-        <div>のこりなぞり消し:{{ selectRouteSurplusLength }}</div>
+        <div class="boost-area">
+          <div>ブーストエリアカウント: {{ deleteBoostAreaTotalCount }}</div>
+          <div>ぷよつかい大会スコア: {{ 123456 }}</div>
+        </div>
+        <div class="info-3">
+          <div>のこりなぞり消し:{{ selectRouteSurplusLength }}</div>
 
-        <div>連鎖数:{{ chainNum }}</div>
-        <button class="icon-button" @click="undo">
-          <span class="material-symbols-outlined"> undo </span>
-        </button>
+          <div>連鎖数:{{ chainNum }}</div>
+          <button class="icon-button" @click="undo">
+            <span class="material-symbols-outlined"> undo </span>
+          </button>
+        </div>
       </div>
       <!-- canvas -->
       <div id="cv" ref="canvasContainer"></div>
@@ -51,6 +58,31 @@
         </div>
       </article>
 
+      <div class="boost-area-picker-container">
+        <div v-for="(pba, index) in pickedBoostArea" :key="index">
+          <select
+            @change="pickBoostArea"
+            v-model="pickedBoostArea[index]"
+            class="boost-area-picker"
+            :class="[
+              pickedBoostArea[index]?.color,
+              { null: !pickedBoostArea[index] },
+            ]"
+          >
+            <option :value="null" class="null">
+              ブーストエリア{{ index + 1 }}: 無し
+            </option>
+            <option
+              v-for="item in boostAreaMaps"
+              :value="item"
+              :class="item.color"
+              :key="item"
+            >
+              {{ item.name }}
+            </option>
+          </select>
+        </div>
+      </div>
       <article class="settings">
         <label for="historyIndex">
           <span class="material-symbols-outlined"> schedule </span>
@@ -317,6 +349,7 @@ import SeedsMaps from "@/components/SeedsMaps.vue";
 import seeds from "@/js/seeds-settings";
 import chanceMapList from "@/js/chance-list";
 import { numToUrlSafeChar, UrlSafeCharToNum } from "@/js/url-safe-char-convert";
+import { boostAreaMaps } from "@/js/boostarea-map";
 
 class History {
   constructor(map, lastNextPuyos, selectRoute, colorMag, chainNum) {
@@ -437,6 +470,9 @@ export default {
 
       seedMaps: [],
 
+      boostAreaMaps: boostAreaMaps,
+      pickedBoostArea: [null, null, null, null, null, null],
+      deleteBoostAreaTotalCount: 0,
       isAboutRead: false,
     };
   },
@@ -570,12 +606,19 @@ export default {
       });
     },
 
-    chainEnd: function (chainNum) {
+    chainEnd: function (chainNum, deleteBoostAreaTotalCount) {
       this.chainNum = chainNum;
+      this.deleteBoostAreaTotalCount = deleteBoostAreaTotalCount;
       this.replay.push({
         map: this.field.cloneMap(),
         nexts: this.field.cloneNextPuyos(),
       });
+      let boostAreaMag = deleteBoostAreaTotalCount * 0.04;
+      boostAreaMag = boostAreaMag > 2 ? 2 : boostAreaMag;
+
+      //TOOD: ブーストエリアカウントはできているが倍率に反映されていない
+      this.colorMag = this.colorMag.map((mag) => mag * (boostAreaMag + 1));
+
       let wild = this.colorMag.reduce((sum, element) => sum + element, 0);
       let wildNum = 5;
       this.colorMag[wildNum] = wild;
@@ -608,7 +651,7 @@ export default {
       // ネクネク変化が使用済みの場合はキャンセル
       if (this.usedNextnextchange) return;
       this.usedNextnextchange = true;
-      //TODO: ネクストぷよを消す
+      // ネクストぷよを消す
       this.field.nextClear();
       //ネクネクを設定する
 
@@ -702,6 +745,13 @@ export default {
       this.editPaintColor = color;
       this.canvas.setEditPaintColor(color);
       if (color === -1) this.setParam();
+    },
+
+    pickBoostArea() {
+      const codes = this.pickedBoostArea
+        .filter((item) => item !== null)
+        .map((item) => item.code);
+      this.field.setBoostAreaFromCodes(codes);
     },
 
     puyoImgUrl(puyoIndex) {
@@ -1004,19 +1054,38 @@ export default {
     padding-left: 10px;
   }
 
-  .info {
+  .result-info {
     margin-top: 10px;
     width: 100%;
-    height: 40px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .info > div {
+  .result-info .boost-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: left;
+    text-align: left;
+  }
+
+  .result-info .boost-area > * {
+    width: 100%;
+    text-align: left;
+  }
+
+  .result-info > .info-3 {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .result-info > .info-3 > div {
     flex: auto;
     display: flex;
-
-    justify-content: left;
     align-items: center;
   }
 
@@ -1035,6 +1104,53 @@ export default {
     border-radius: 50%;
   }
 
+  .boost-area-picker-container {
+    margin-top: 10px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 120px);
+    gap: 10px;
+  }
+
+  #main .boost-area-picker-container .boost-area-picker {
+    width: 100%;
+  }
+
+  .boost-area-picker.null {
+    font-size: 9px;
+  }
+  .boost-area-picker > .null {
+    background-color: #ffffff;
+  }
+  .boost-area-picker > .red,
+  .boost-area-picker.red {
+    font-size: 14px;
+    background-color: #ffcccc;
+  }
+
+  .boost-area-picker > .green,
+  .boost-area-picker.green {
+    font-size: 14px;
+    background-color: #ccffcc;
+  }
+
+  .boost-area-picker > .blue,
+  .boost-area-picker.blue {
+    font-size: 14px;
+    background-color: #ccccff;
+  }
+
+  .boost-area-picker > .yellow,
+  .boost-area-picker.yellow {
+    font-size: 14px;
+    background-color: #ffffcc;
+  }
+
+  .boost-area-picker > .purple,
+  .boost-area-picker.purple {
+    font-size: 14px;
+    background-color: #eeccff;
+  }
   main .settings {
     width: 100%;
     margin-top: 10px;
@@ -1104,7 +1220,7 @@ export default {
 
   .rate-container {
     width: 100%;
-    height: 20;
+    height: 20px;
     margin-top: 50px;
     display: flex;
     flex-direction: row;
