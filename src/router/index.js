@@ -5,7 +5,7 @@ const routes = [
   {
     path: "/:settings(.*)",
     name: "main",
-    meta: { title: "ぷよクエ練習シミュレータ - new" },
+    meta: { title: "ぷよクエ連鎖計算シミュレーター - new" },
     component: MainView,
   },
 ];
