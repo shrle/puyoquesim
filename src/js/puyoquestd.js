@@ -482,6 +482,11 @@ class Field {
     return this.map[y][x].plus;
   }
 
+  setPlus(x, y) {
+    if (!this.isRangeField(x, y)) return false;
+    this.map[y][x].plus = true;
+  }
+
   countPointsToPlus(points) {
     let count = 0;
     for (const p of points) {
@@ -506,6 +511,10 @@ class Field {
   setNextPlus(x) {
     if (!this.isRangeField(x, 0)) return;
     this.next[x].plus = true;
+  }
+  deleteNextPlus(x) {
+    if (!this.isRangeField(x, 0)) return;
+    this.next[x].plus = false;
   }
 
   setNextsPlus() {

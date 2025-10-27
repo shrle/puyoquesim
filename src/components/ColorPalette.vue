@@ -9,6 +9,21 @@
             @click="setEditPaintColor(index - 1)"
           />
         </div>
+        <div>
+          <img
+            src="@/assets/plus.svg"
+            :class="{ selected: editPaintColor === 10 }"
+            @click="setEditPaintColor(10)"
+          />
+        </div>
+        <div>
+          <img
+            src="@/assets/plus.svg"
+            class="delete-plus"
+            :class="{ selected: editPaintColor === 11 }"
+            @click="setEditPaintColor(11)"
+          />
+        </div>
         <button
           class="icon-button"
           :class="{ selected: editPaintColor === ERASER }"
@@ -459,5 +474,10 @@ export default {
 
   object-fit: contain;
   aspect-ratio: 97/87;
+}
+
+.delete-plus {
+  opacity: 0.5;
+  filter: brightness(50%);
 }
 </style>

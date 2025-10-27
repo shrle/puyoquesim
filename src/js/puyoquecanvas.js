@@ -472,7 +472,15 @@ export default class PuyoqueCanvas {
       this.field.deletePuyo(fp.x, fp.y);
       return;
     }
-    this.field.setPuyo(fp.x, fp.y, this.editPaintColor);
+    if (this.editPaintColor === 10) {
+      this.field.setPlus(fp.x, fp.y);
+      return;
+    }
+    if (this.editPaintColor === 11) {
+      this.field.deletePlus(fp.x, fp.y);
+      return;
+    }
+    this.field.setColor(fp.x, fp.y, this.editPaintColor);
   }
 
   editPaintNextPuyo(cursorPoint) {
@@ -481,6 +489,14 @@ export default class PuyoqueCanvas {
     if (x === -1) return;
     if (this.editPaintColor === 999) {
       this.field.deleteNext(x);
+      return;
+    }
+    if (this.editPaintColor === 10) {
+      this.field.setNextPlus(x);
+      return;
+    }
+    if (this.editPaintColor === 11) {
+      this.field.deleteNextPlus(x);
       return;
     }
     this.field.setNextColor(x, this.editPaintColor);
