@@ -65,6 +65,9 @@ export default class PuyoqueCanvas {
     this.selectRoute = new Route();
     this.selectedField = [];
     this.selectRouteLengthMax = 5;
+    this.deleteBoostAreaTotalCount = 0;
+    /** ぷよつかい大会のスコア */
+    this.deleteScore = 0;
     /**
      * callback
      */
@@ -570,6 +573,7 @@ export default class PuyoqueCanvas {
     this.isChain = true;
     this.chainNum = 0;
     this.deleteBoostAreaTotalCount = 0;
+    this.deleteScore = 0;
 
     if (this.paintColor === -1) this.deleteSelectPuyo();
     else {
@@ -597,7 +601,7 @@ export default class PuyoqueCanvas {
     this.isChain = false;
 
     for (const func of this.chainEndListeners) {
-      func(this.chainNum, this.deleteBoostAreaTotalCount);
+      func(this.chainNum, this.deleteBoostAreaTotalCount, this.deleteScore);
     }
   }
 
@@ -617,38 +621,70 @@ export default class PuyoqueCanvas {
     let deletePrismNum = 0;
     let deletePuyoNum = 0;
     let deleteBoostAreaCount = 0;
+    let deleteScore = 0;
 
     let deleteColorList = [];
 
     this.field.searchLinkPuyos(targetLength, (points, color) => {
       chained = true;
       deleteBoostAreaCount = 0;
+      deleteScore = 0;
       for (const point of points) {
         this.field.targetAround(point.x, point.y, (x, y, color) => {
           if (color === puyoColor.heart) {
             deleteHeartNum++;
-            if (this.field.isBoostArea(x, y)) deleteBoostAreaCount++;
+            if (this.field.isBoostArea(x, y)) {
+              deleteBoostAreaCount++;
+              deleteScore += 3;
+            } else {
+              deleteScore++;
+            }
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.prism) {
             deletePuyoNum++;
             deletePrismNum++;
-            if (this.field.isBoostArea(x, y)) deleteBoostAreaCount++;
+            if (this.field.isBoostArea(x, y)) {
+              deleteBoostAreaCount++;
+              deleteScore += 3;
+            } else {
+              deleteScore++;
+            }
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.ojama) {
             deletePuyoNum++;
-            if (this.field.isBoostArea(x, y)) deleteBoostAreaCount++;
+            if (this.field.isBoostArea(x, y)) {
+              deleteBoostAreaCount++;
+              deleteScore += 3;
+            } else {
+              deleteScore++;
+            }
             this.field.deletePuyo(x, y);
           } else if (color === puyoColor.kataPuyo) {
             this.field.setColor(x, y, puyoColor.ojamaChanging);
           }
         });
-        if (this.field.isBoostArea(point.x, point.y)) deleteBoostAreaCount++;
+        if (this.field.isBoostArea(point.x, point.y)) {
+          deleteBoostAreaCount++;
+          if (this.field.isPlus(point.x, point.y)) {
+            // ブーストエリアでなおかつプラスぷよ
+            deleteScore += 6;
+          } else {
+            // ブーストエリアで通常ぷよ
+            deleteScore += 3;
+          }
+        } else {
+          if (this.field.isPlus(point.x, point.y)) {
+            // プラスぷよ
+            deleteScore += 2;
+          } else deleteScore++;
+        }
       }
       deleteColorList.push(color);
       const plusCount = this.field.countPointsToPlus(points);
       deletePuyoNum += points.length + plusCount;
       this.field.deletePuyos(points);
       this.deleteBoostAreaTotalCount += deleteBoostAreaCount;
+      this.deleteScore += deleteScore;
     });
     this.ojamaChangingToOjama();
 

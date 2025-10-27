@@ -16,7 +16,7 @@
 
         <div class="boost-area">
           <div>ブーストエリアカウント: {{ deleteBoostAreaTotalCount }}</div>
-          <div>ぷよつかい大会スコア: {{ 123456 }}</div>
+          <div>ぷよつかい大会スコア: {{ deleteScore }}</div>
         </div>
         <div class="info-3">
           <div>のこりなぞり消し:{{ selectRouteSurplusLength }}</div>
@@ -473,6 +473,8 @@ export default {
       boostAreaMaps: boostAreaMaps,
       pickedBoostArea: [null, null, null, null, null, null],
       deleteBoostAreaTotalCount: 0,
+      /** ぷよつかい大会のスコア */
+      deleteScore: 0,
       isAboutRead: false,
     };
   },
@@ -606,9 +608,10 @@ export default {
       });
     },
 
-    chainEnd: function (chainNum, deleteBoostAreaTotalCount) {
+    chainEnd: function (chainNum, deleteBoostAreaTotalCount, deleteScore) {
       this.chainNum = chainNum;
       this.deleteBoostAreaTotalCount = deleteBoostAreaTotalCount;
+      this.deleteScore = deleteScore;
       this.replay.push({
         map: this.field.cloneMap(),
         nexts: this.field.cloneNextPuyos(),

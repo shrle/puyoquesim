@@ -482,6 +482,10 @@ class Field {
     return this.map[y][x].plus;
   }
 
+  isPlus(x, y) {
+    return this.getPlus(x, y);
+  }
+
   setPlus(x, y) {
     if (!this.isRangeField(x, y)) return false;
     this.map[y][x].plus = true;
