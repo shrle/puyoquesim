@@ -74,6 +74,28 @@ const boostAreaMaps = {
     code: "KSYagop",
     color: "red",
   },
+  amamiharuka: {
+    name: "天海春香",
+    code: "JMWaejnp",
+    color: "red",
+  },
+  kisaragichihaya: {
+    name: "如月千早",
+    code: "IOSbfhsv",
+    color: "blue",
+  },
+  hoshimiki: {
+    name: "星井美希",
+    code: "KPTZclru",
+    color: "yellow",
+  },
+  /*
+    : {
+    name: "",
+    code: "",
+    color: "",
+  },
+  */
 };
 
 export { boostAreaMaps };
