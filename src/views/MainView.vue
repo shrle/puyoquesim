@@ -59,14 +59,14 @@
       </article>
 
       <div class="boost-area-picker-container">
-        <div v-for="(pba, index) in pickedBoostArea" :key="index">
+        <div v-for="(pba, index) in pickedBoostAreas" :key="index">
           <select
             @change="pickBoostArea"
-            v-model="pickedBoostArea[index]"
+            v-model="pickedBoostAreas[index]"
             class="boost-area-picker"
             :class="[
-              pickedBoostArea[index]?.color,
-              { null: !pickedBoostArea[index] },
+              pickedBoostAreas[index]?.color,
+              { null: !pickedBoostAreas[index] },
             ]"
           >
             <option :value="null" class="null">
@@ -349,7 +349,7 @@ import SeedsMaps from "@/components/SeedsMaps.vue";
 import seeds from "@/js/seeds-settings";
 import chanceMapList from "@/js/chance-list";
 import { numToUrlSafeChar, UrlSafeCharToNum } from "@/js/url-safe-char-convert";
-import { boostAreaMaps } from "@/js/boostarea-map";
+import { boostAreaMaps, idToBoostAreaMapName } from "@/js/boostarea-map";
 
 class History {
   constructor(map, lastNextPuyos, selectRoute, colorMag, chainNum) {
@@ -402,6 +402,8 @@ export default {
     this.selectRoute = this.canvas.selectRoute;
     this.canvas.passSelectRouteLengthMax = this.passSelectRouteLengthMax;
     this.canvas.setErasePuyoLength(this.erasePuyoLength);
+
+    this.setBoostAreas();
   },
   data() {
     return {
@@ -471,7 +473,7 @@ export default {
       seedMaps: [],
 
       boostAreaMaps: boostAreaMaps,
-      pickedBoostArea: [null, null, null, null, null, null],
+      pickedBoostAreas: [null, null, null, null, null, null],
       deleteBoostAreaTotalCount: 0,
       /** ぷよつかい大会のスコア */
       deleteScore: 0,
@@ -510,6 +512,14 @@ export default {
     chainCorrection() {
       this.setParam();
     },
+    pickedBoostAreas: {
+      handler() {
+        let ids = "";
+        this.pickedBoostAreas.forEach((item) => (ids += item?.id + ","));
+        localStorage.setItem("pickedBoostAreas", ids);
+      },
+      deep: true,
+    },
   },
   methods: {
     selectFile() {
@@ -544,6 +554,27 @@ export default {
       this.field.codeToMap(chanceMapList[id][0]);
       this.setParam();
     },
+    setBoostAreas() {
+      let ids = localStorage.getItem("pickedBoostAreas");
+      if (!ids) return;
+
+      console.dir("ids");
+      console.dir(ids);
+      ids = ids.split(",");
+      ids.pop();
+      console.dir(ids);
+
+      ids.forEach(
+        (id, index) =>
+          (this.pickedBoostAreas[index] =
+            id === "undefined"
+              ? null
+              : this.boostAreaMaps[idToBoostAreaMapName[id]])
+      );
+
+      this.pickBoostArea();
+    },
+
     getSelectRoute: function (selectRoute) {
       this.selectRoute = selectRoute;
     },
@@ -751,7 +782,7 @@ export default {
     },
 
     pickBoostArea() {
-      const codes = this.pickedBoostArea
+      const codes = this.pickedBoostAreas
         .filter((item) => item !== null)
         .map((item) => item.code);
       this.field.setBoostAreaFromCodes(codes);
