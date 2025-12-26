@@ -89,6 +89,16 @@ const boostAreaMaps = {
     code: "KPTZclru",
     color: "yellow",
   },
+  feli: {
+    name: "フェーリ",
+    code: "KTUcijq",
+    color: "purple",
+  },
+  lemres: {
+    name: "レムレス",
+    code: "OVdemuv",
+    color: "green",
+  },
   /*
     : {
     name: "",
