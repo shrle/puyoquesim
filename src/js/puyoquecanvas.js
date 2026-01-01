@@ -8,6 +8,11 @@ const backgroundColor = 0xc8c8c8;
 const backgroundColorForEditMode = 0x224422;
 const plusSvgPath = "img/plus.svg";
 
+const PAINT_ERASER = 999;
+const PAINT_CHANCE = 998;
+const PAINT_PLUS = 10;
+const PAINT_DELETE_PLUS = 11;
+
 export default class PuyoqueCanvas {
   static origPuyoWidth = 97;
   static origPuyoHeight = 89;
@@ -49,6 +54,10 @@ export default class PuyoqueCanvas {
       backgroundColor: backgroundColor,
       autoResize: true,
     });
+
+    this.chanceFilter = new PIXI.ColorMatrixFilter();
+    this.chanceFilter.brightness(2);
+    console.dir(this.chanceFilter);
 
     document.querySelector(selecter).appendChild(this.app.view);
     this.initContainers();
@@ -471,15 +480,19 @@ export default class PuyoqueCanvas {
   editPaintPuyo(cursorPoint) {
     let fp = this.toFieldPoint(cursorPoint.x, cursorPoint.y);
     if (!fp) return;
-    if (this.editPaintColor === 999) {
+    if (this.editPaintColor === PAINT_ERASER) {
       this.field.deletePuyo(fp.x, fp.y);
       return;
     }
-    if (this.editPaintColor === 10) {
+    if (this.editPaintColor === PAINT_CHANCE) {
+      this.field.setChance(fp.x, fp.y);
+      return;
+    }
+    if (this.editPaintColor === PAINT_PLUS) {
       this.field.setPlus(fp.x, fp.y);
       return;
     }
-    if (this.editPaintColor === 11) {
+    if (this.editPaintColor === PAINT_DELETE_PLUS) {
       this.field.deletePlus(fp.x, fp.y);
       return;
     }
@@ -828,11 +841,16 @@ export default class PuyoqueCanvas {
       for (let x = 0; x < this.field.width; x++) {
         if (this.field.isBlank(x, y)) {
           this.setInvisiblePuyo(x, y);
+          continue;
+        }
+        let color = this.field.getColor(x, y);
+        this.setPuyoColor(x, y, color);
+        this.setVisiblePuyo(x, y);
+        this.plusSprites[y][x].visible = this.field.getPlus(x, y);
+        if (this.field.getChance(x, y)) {
+          this.puyoSprites[y][x].filters = [this.chanceFilter];
         } else {
-          let color = this.field.getColor(x, y);
-          this.setPuyoColor(x, y, color);
-          this.setVisiblePuyo(x, y);
-          this.plusSprites[y][x].visible = this.field.getPlus(x, y);
+          this.puyoSprites[y][x].filters = [];
         }
       }
     }

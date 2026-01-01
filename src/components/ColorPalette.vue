@@ -24,6 +24,14 @@
             @click="setEditPaintColor(11)"
           />
         </div>
+        <div>
+          <img
+            :src="puyoImgUrl(0)"
+            class="chance-puyo"
+            :class="{ selected: editPaintColor === CHANCE }"
+            @click="setEditPaintColor(CHANCE)"
+          />
+        </div>
         <button
           class="icon-button"
           :class="{ selected: editPaintColor === ERASER }"
@@ -132,6 +140,7 @@ export default {
   data() {
     return {
       ERASER: 999,
+      CHANCE: 998,
       colorNum: 5,
       editPaintColor: -1,
 
@@ -479,5 +488,9 @@ export default {
 .delete-plus {
   opacity: 0.5;
   filter: brightness(50%);
+}
+
+.chance-puyo {
+  filter: brightness(200%);
 }
 </style>
