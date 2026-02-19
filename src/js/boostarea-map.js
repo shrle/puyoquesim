@@ -119,6 +119,18 @@ const boostAreaMaps = {
     code: "OVdemuv",
     color: "green",
   },
+  ally: {
+    id: "U",
+    name: "アリィ",
+    code: "MUfknrt",
+    color: "green",
+  },
+  rafisol: {
+    id: "V",
+    name: "ラフィソル",
+    code: "NWbelms",
+    color: "purple",
+  },
   /*
     : {
         id:"",
@@ -150,8 +162,8 @@ const idToBoostAreaMapName = {
   R: "hoshimiki",
   S: "feli",
   T: "lemres",
-  U: "",
-  V: "",
+  U: "ally",
+  V: "rafisol",
   W: "",
   X: "",
   Y: "",
