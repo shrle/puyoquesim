@@ -55,9 +55,16 @@ export default class PuyoqueCanvas {
       autoResize: true,
     });
 
+    /** チャンスぷよを明るく表示させるためのフィルタ */
     this.chanceFilter = new PIXI.ColorMatrixFilter();
     this.chanceFilter.brightness(2);
-    console.dir(this.chanceFilter);
+
+    /** 強調表示させたいぷよのマップ */
+    this.highlightPuyoMap = this.array2dInit(
+      this.field.width,
+      this.field.height,
+      false,
+    );
 
     document.querySelector(selecter).appendChild(this.app.view);
     this.initContainers();
@@ -113,7 +120,7 @@ export default class PuyoqueCanvas {
       deletePuyoNum,
       deleteColorList,
       deletePrismNum,
-      chainNum
+      chainNum,
     ) {};
 
     this.dropSpeed = 5;
@@ -123,7 +130,7 @@ export default class PuyoqueCanvas {
     await PIXI.Assets.load([rd + "img/puyos.json", rd + plusSvgPath]).then(
       () => {
         this.onAssetsLoaded();
-      }
+      },
     );
   }
 
@@ -153,6 +160,17 @@ export default class PuyoqueCanvas {
     this.erasePuyoLength = num;
   }
 
+  setHighlightPuyoMap(newMap) {
+    this.highlightPuyoMap = newMap;
+  }
+  cancelHighlightPuyo() {
+    this.highlightPuyoMap = this.array2dInit(
+      this.field.width,
+      this.field.height,
+      false,
+    );
+  }
+
   array2dInit(width, height, value) {
     var array = [];
 
@@ -169,7 +187,7 @@ export default class PuyoqueCanvas {
     this.selectedField = this.array2dInit(
       this.field.width,
       this.field.height,
-      false
+      false,
     );
     /*
     for (let y = 0; y < this.field.height; y++) {
@@ -278,7 +296,7 @@ export default class PuyoqueCanvas {
           c.x + sprite.x + hitX,
           c.y + sprite.y + hitY,
           width,
-          height
+          height,
         );
 
         lineSprites.push(sprite);
@@ -344,7 +362,7 @@ export default class PuyoqueCanvas {
     if (nextFieldHeight > 0) {
       for (let x = 0; x < this.field.width; x++) {
         let sprite = new PIXI.Sprite(
-          this.puyoTextures[this.field.getNextColor(x) + 9]
+          this.puyoTextures[this.field.getNextColor(x) + 9],
         );
         sprite.scale.x = nextScale;
         sprite.scale.y = nextScale;
@@ -355,7 +373,7 @@ export default class PuyoqueCanvas {
           sprite.x,
           sprite.y,
           sprite.width,
-          sprite.height
+          sprite.height,
         );
 
         this.nextPuyoSprites.push(sprite);
@@ -418,9 +436,12 @@ export default class PuyoqueCanvas {
       this.boostAreaContainer,
       this.fieldContainer,
       this.selectedPuyoContainer,
-      this.selectGraph
+      this.selectGraph,
     );
     this.app.stage.addChild(this.container, this.touchContainer);
+
+    /** 現在のフレーム数 */
+    this.frameCount = 0;
     this.app.ticker.add((delta) => {
       this.animate(delta);
     });
@@ -706,7 +727,7 @@ export default class PuyoqueCanvas {
         deletePuyoNum,
         deleteColorList,
         deletePrismNum,
-        this.chainNum
+        this.chainNum,
       );
       this.chainNum++;
       this.setFloatingPuyo();
@@ -852,6 +873,15 @@ export default class PuyoqueCanvas {
         } else {
           this.puyoSprites[y][x].filters = [];
         }
+
+        // 強調表示に関する処理
+        if (this.highlightPuyoMap[y][x]) {
+          let radian = (this.frameCount / 60) * 2 * Math.PI * 2;
+          let cos = Math.cos(radian);
+          let flag = Math.round(cos) === 1;
+          if (flag) this.setVisiblePuyo(x, y);
+          else this.setInvisiblePuyo(x, y);
+        }
       }
     }
 
@@ -892,7 +922,7 @@ export default class PuyoqueCanvas {
         p.x * this.puyoWidth,
         p.y * this.puyoHeight + this.nextHeight,
         this.puyoWidth,
-        this.puyoHeight
+        this.puyoHeight,
       );
     }
 
@@ -913,6 +943,8 @@ export default class PuyoqueCanvas {
   }
 
   animate(delta) {
+    this.frameCount++;
+
     //浮遊しているぷよが合ってなおかつ全て接地していた場合のみ
     if (this.floatingPuyoSprites.length > 0 && this.isAllLanding()) {
       this.chain();

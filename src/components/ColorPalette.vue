@@ -62,7 +62,10 @@
             }"
           >
             <template v-for="(color, index) in paintColorOrder" :key="color">
-              <img :src="puyoImgUrl(color)" />
+              <img
+                :src="puyoImgUrl(color)"
+                @click="highlightPaintPuyo(color)"
+              />
               <span
                 class="material-symbols-outlined"
                 v-if="index < paintColorOrder.length - 1"
@@ -124,7 +127,10 @@
 <script>
 import FooterDrawer from "./FooterDrawer.vue";
 import PopupButton from "@/components/PopupButton.vue";
+import array2dInit from "@/js/array2d-init";
 import { Field } from "@/js/puyoquestd";
+import PuyoqueCanvas from "@/js/puyoquecanvas.js";
+
 export default {
   name: "ColorPalette",
   emits: ["setEditPaintColor"],
@@ -135,6 +141,8 @@ export default {
   props: {
     /**@type {Field} */
     field: Field,
+    /**@type {PuyoqueCanvas} */
+    canvas: PuyoqueCanvas,
     erasePuyoLength: Number,
   },
   data() {
@@ -167,6 +175,8 @@ export default {
         "puyo-purple",
       ],
       puyoColorPaintCounter: [0, 0, 0, 0, 0],
+      /** 強調表示されている色 */
+      highlightPaintPuyoColor: -1,
     };
   },
   computed: {},
@@ -182,6 +192,7 @@ export default {
       this.$refs.FooterDrawer.open();
     },
     close() {
+      this.canvas.cancelHighlightPuyo();
       this.editPaintColor = -1;
       this.$emit("setEditPaintColor", -1);
     },
@@ -339,6 +350,36 @@ export default {
       }
 
       return isPaint;
+    },
+
+    /**
+     * 盤面上の指定色ぷよが基礎盤面のぷよと異なる色(つまり塗り替えれてた色)であれば強調表示する
+     * @param color
+     */
+    highlightPaintPuyo(color) {
+      if (this.highlightPaintPuyoColor === color) {
+        // 前回と同じ色が指定された場合は強調表示を解除
+        this.highlightPaintPuyoColor = -1;
+        this.canvas.cancelHighlightPuyo();
+        return;
+      }
+
+      this.highlightPaintPuyoColor = color;
+      const width = this.field.width;
+      const height = this.field.height;
+      let map = array2dInit(width, height, false);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const c = this.field.getColor(x, y);
+          if (c !== color) continue;
+
+          // 基礎盤面の色と異なれば map[][]= true
+          map[y][x] = this.baseField.getColor(x, y) != color;
+        }
+      }
+
+      this.canvas.setHighlightPuyoMap(map);
     },
 
     puyoImgUrl(puyoIndex) {

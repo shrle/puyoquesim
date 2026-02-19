@@ -243,6 +243,7 @@
         ref="ColorPalette"
         @set-edit-paint-color="setEditPaintColor"
         :field="field"
+        :canvas="canvas"
         :erasePuyoLength="erasePuyoLength"
       ></ColorPalette>
 
