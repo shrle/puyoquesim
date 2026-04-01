@@ -131,6 +131,26 @@ const boostAreaMaps = {
     code: "NWbelms",
     color: "purple",
   },
+  accord: {
+    id: "W",
+    name: "アコール先生",
+    code: "LRYZior",
+    color: "blue",
+  },
+
+  satan: {
+    id: "X",
+    name: "サタン",
+    code: "PWdfnuv",
+    color: "green",
+  },
+
+  ecolo: {
+    id: "Y",
+    name: "エコロ",
+    code: "MTcjlqs",
+    color: "yellow",
+  },
   /*
     : {
         id:"",
