@@ -478,7 +478,7 @@ export default {
       deleteBoostAreaTotalCount: 0,
       /** ぷよつかい大会のスコア */
       deleteScore: 0,
-      isAboutRead: false,
+      isAboutRead: true,
     };
   },
   computed: {
