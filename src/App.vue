@@ -23,7 +23,7 @@ a {
   text-decoration: none;
 }
 
-button.icon-button {
+.icon-button {
   width: 40px;
   height: 40px;
   border: 0;
@@ -34,23 +34,23 @@ button.icon-button {
   align-items: center;
 }
 
-button.icon-button.primary {
+.icon-.primary {
   background-color: #aaaaaa;
 }
 
-button.icon-button.silent {
+.icon-.silent {
   background-color: transparent;
 }
 
-button.icon-button:hover {
+.icon-button:hover {
   background-color: #cccccc;
 }
 
-button.icon-button:active {
+.icon-button:active {
   background-color: #aaaaaa;
 }
 
-button.text-button {
+.text-button {
   background-color: #dddddd;
   color: #000000;
   font-weight: bolder;
@@ -64,22 +64,22 @@ button.text-button {
   align-items: center;
 }
 
-button.text-button.primary {
+.text-.primary {
   background-color: #000000;
   color: #ffffff;
 }
 
-button.text-button.silent {
+.text-.silent {
   background-color: transparent;
   color: #000000;
   border: #cccccc 1px solid;
 }
 
-button.text-button:active {
+.text-button:active {
   background-color: #222222;
 }
 
-button.text-button:focus {
+.text-button:focus {
   background-color: #ffffff;
   border: #000000 2px solid;
   color: #000000;

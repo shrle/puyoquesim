@@ -2,7 +2,16 @@
   <div id="main">
     <main>
       <h1><a href="./">ぷよクエ連鎖計算シミュレータ</a></h1>
-
+      <p>
+        <a
+          href="https://bbs.shrle.net/puyosim"
+          target="_blank"
+          class="icon-button"
+        >
+          <span class="material-symbols-outlined"> comment </span></a
+        >
+        ご意見ご要望があれば<br />吹き出しアイコンから ご気軽にどうぞ
+      </p>
       <div class="result-info">
         <div class="rate-container">
           <div
@@ -285,6 +294,7 @@
         >使い方を動画で見る</a
       >
     </p>
+
     <h3>機能</h3>
     <ul>
       <li>
@@ -327,8 +337,25 @@
       </li>
     </ul>
 
+    <p>
+      <a
+        href="https://bbs.shrle.net/puyosim"
+        target="_blank"
+        class="icon-button"
+      >
+        <span class="material-symbols-outlined"> comment </span></a
+      >
+      ご意見ご要望があれば<br />吹き出しアイコンから ご気軽にどうぞ
+    </p>
+
     <button class="text-button" @click="isAboutRead = true">分かった！</button>
   </section>
+
+  <div class="comment-button-container">
+    <a href="https://bbs.shrle.net/puyosim" target="_blank" class="icon-button">
+      <span class="material-symbols-outlined"> comment </span></a
+    >
+  </div>
 
   <div class="help-button-container">
     <button class="icon-button">
@@ -966,7 +993,7 @@ export default {
   .about {
     max-width: 1000px;
     width: 95%;
-    height: 60%;
+    height: 80%;
     padding: 10px;
 
     background-color: #f8f8f8;
@@ -1059,7 +1086,7 @@ export default {
   }
   @media screen and (max-width: 560px) {
     .about {
-      width: 100%;
+      width: 95%;
     }
     /* .about ul {
       padding-left: 15px;
@@ -1072,6 +1099,15 @@ export default {
     position: fixed;
     right: 5px;
     bottom: 5px;
+    z-index: 11;
+  }
+
+  .comment-button-container {
+    width: 40px;
+    height: 40px;
+    position: fixed;
+    right: 5px;
+    bottom: 55px;
     z-index: 11;
   }
 
